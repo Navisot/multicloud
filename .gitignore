@@ -1,0 +1,7 @@
+.env
+.idea
+.vagrant
+/node_modules
+/public/storage
+Vagrantfile
+/storage/*.key
