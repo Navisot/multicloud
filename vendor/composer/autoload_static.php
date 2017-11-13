@@ -299,6 +299,7 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
     );
 
     public static $classMap = array (
+        'App\\Azurevm' => __DIR__ . '/../..' . '/app/Azurevm.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
@@ -322,6 +323,7 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
         'Carbon\\Carbon' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Carbon.php',
         'Carbon\\CarbonInterval' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/CarbonInterval.php',
         'Carbon\\Exceptions\\InvalidDateException' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Exceptions/InvalidDateException.php',
+        'CreateAzurevmsTable' => __DIR__ . '/../..' . '/database/migrations/2017_11_12_102416_create_azurevms_table.php',
         'CreatePasswordResetsTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
         'CreateUserTokensTable' => __DIR__ . '/../..' . '/database/migrations/2017_11_01_120539_create_user_tokens_table.php',
         'CreateUsersTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_000000_create_users_table.php',

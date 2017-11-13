@@ -1,0 +1,23 @@
+table.table.vm-table {
+    width: 70%;
+    margin: 0 auto;
+}
+
+span.vm_name {
+    color: #238bd4;
+    font-size: 18px;
+}
+
+span.vm_info {
+    font-size: 11px;
+    color: #828282;
+    text-transform: uppercase;
+}
+
+.smaller-fonts{
+    font-size:14px;
+}
+
+td.smaller-fonts {
+    vertical-align: middle!important;
+}
