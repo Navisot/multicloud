@@ -449,16 +449,12 @@ class RestController extends Controller
         $status_code = $result->getStatusCode();
 
         if($status_code == 202 || $status_code == 200) {
-
-            $dvm = Azurevm::find($vm_id);
-
-            $dvm->delete();
-
-            return response()->json(['status' => 'ok'], 200);
+            $vm->delete();
         }
 
-        return response()->json(['status' => 'Not Deleted'], 200);
+        $vms = Azurevm::where('user_id', 1)->get();
 
+        return response()->json(['vms' => $vms], 200);
 
 
     }

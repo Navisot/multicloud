@@ -17,7 +17,9 @@ window.Vue = require('vue');
 
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import VueClipboard from 'vue-clipboard'
 
+Vue.use(VueClipboard)
 Vue.use(VueAxios, axios)
 
 Vue.component('example', require('./components/Example.vue'));

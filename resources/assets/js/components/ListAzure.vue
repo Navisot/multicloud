@@ -1,5 +1,8 @@
 <template>
 	<div>
+		<br>
+
+	<div class="box">
 		<h1 class="title has-text-centered">Virtual Machines</h1>
 			<table class="table vm-table">
 				<thead>
@@ -14,20 +17,22 @@
 				<tbody>
 				<tr v-for="vm in vms">
 					<td>
-						<span class="vm_name">{{vm.vm}}</span>
+
+						<span class="vm_name">{{vm.vm}}</span> <span class="tag is-success" v-if="vm.status == 'up'">Running</span> <span v-else class="tag is-dark"> Stopped </span>
 						<br>
 						<span class="vm_info">{{vm.os_type}} / {{vm.os_disk_size}} GB / {{vm.vm_size}} / {{vm.location}}</span>
+
 					</td>
 					<td class="smaller-fonts">{{vm.admin_username}}</td>
 					<td class="smaller-fonts">{{vm.ip_address}}</td>
 					<td class="smaller-fonts" v-show=" vm.status == 'up' ">
-						<a href="#" @click.prevent="stopVM(vm.id)">Stop VM</a>
+						<button href="#" class="button is-info is-outlined" style="font-size:14px;" @click.prevent="stopVM(vm.id)">Stop VM</button>
 					</td>
 					<td class="smaller-fonts" v-show=" vm.status == 'down' ">
-						<a href="#" @click.prevent="startVM(vm.id)">Start VM</a>
+						<button href="#" class="button is-info is-outlined" style="font-size:14px;" @click.prevent="startVM(vm.id)">Start VM</button>
 					</td>
 					<td>
-						<button class="button is-danger is-outlined" style="font-size:14px;" @click.prevent="deleteAzureVM(vm.id)">Destroy</button>
+						<button class="button is-danger is-outlined" style="font-size:14px;" :disabled="disableDestroy" @click.prevent="deleteAzureVM(vm.id)">Destroy</button>
 					</td>
 				</tr>
 				</tbody>
@@ -37,7 +42,7 @@
 		<!-- Create VM Button -->
 		<div class="columns">
 			<div class="column is-offset-2" >
-				<a class="button is-primary" :disabled="disableCreateVM" @click.prevent="showModal=true" style="margin-left:-25px;">{{button.text}}</a>
+				<button class="button is-primary" :disabled="disableCreateVM" @click.prevent="showModal=true" style="margin-left:-25px;">{{button.text}}</button>
 			</div>
 		</div>
 
@@ -63,6 +68,7 @@
 
 		</div>
 
+	</div>
 
 </template>
 
@@ -77,7 +83,8 @@
 				button: {
                     text: 'Create VM'
 				},
-				disableCreateVM: false
+				disableCreateVM: false,
+                disableDestroy: false
 
 			}
 		},
@@ -88,8 +95,6 @@
                 var that = this;
 
 			    axios.get('/azure/vm/stop/' + vm_name).then(function(response){
-
-			        alert(response.data.status);
 
 			        that.vms = response.data.vms;
 
@@ -103,7 +108,7 @@
 
                 axios.get('/azure/vm/start/' + vm_name).then(function(response){
 
-                    alert(response.data.status);
+                    alert('VM Started!');
 
                     that.vms = response.data.vms;
 
@@ -134,9 +139,17 @@
 
 			deleteAzureVM(vm_id) {
 
-                axios.post('/azure/delete/vm/' + vm_id).then(function(response){
-                    that.vms = response.data.vms;
-                });
+			    this.disableDestroy = true;
+
+			    var con = confirm('Are you sure?')
+
+				var that = this;
+
+				if (con) {
+                    axios.post('/azure/delete/vm/' + vm_id).then(function(response){
+                        that.vms = response.data.vms;
+                    });
+				}
 
 			}
 

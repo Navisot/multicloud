@@ -1078,7 +1078,7 @@ module.exports = function normalizeComponent (
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(12);
-module.exports = __webpack_require__(46);
+module.exports = __webpack_require__(47);
 
 
 /***/ }),
@@ -1091,6 +1091,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_axios__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_axios__ = __webpack_require__(39);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vue_axios__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_vue_clipboard__ = __webpack_require__(40);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_vue_clipboard___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_vue_clipboard__);
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -1111,10 +1113,12 @@ window.Vue = __webpack_require__(36);
 
 
 
+
+Vue.use(__WEBPACK_IMPORTED_MODULE_2_vue_clipboard___default.a);
 Vue.use(__WEBPACK_IMPORTED_MODULE_1_vue_axios___default.a, __WEBPACK_IMPORTED_MODULE_0_axios___default.a);
 
-Vue.component('example', __webpack_require__(40));
-Vue.component('azure', __webpack_require__(43));
+Vue.component('example', __webpack_require__(41));
+Vue.component('azure', __webpack_require__(44));
 
 var app = new Vue({
   el: '#app'
@@ -42642,12 +42646,158 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var _typeof="fun
 /* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
+;(function() {
+  var vueClipboard = {}
+
+  vueClipboard.install = function(Vue) {
+    Vue.directive('clipboard', {
+      params: ['success', 'error'],
+      acceptStatement: true,
+      bind: function() {
+        //bind callback
+
+        this.arg = this.arg === 'cut' ? 'cut' : 'copy'
+        Vue.util.on(this.el, 'click', this.handler.bind(this))
+      },
+
+      update: function(data) {
+        this.text = data
+      },
+
+      unbind: function() {
+        Vue.util.off(this.el, 'click', this.handler)
+        this.removeFake()
+      },
+
+      handler: function() {
+        this.selectFake(this.text)
+        if (this.arg === 'cut') {
+          this.vm[this.expression] = ''
+        }
+      },
+
+      /**
+       * Creates a fake textarea element, sets its value from `text` property,
+       * and makes a selection on it.
+       */
+
+      selectFake: function(text) {
+        var isRTL = document.documentElement.getAttribute('dir') == 'rtl'
+
+        this.removeFake()
+
+        this.fakeHandler = document.body.addEventListener('click', this.removeFake.bind(this))
+
+        this.fakeElem = document.createElement('textarea')
+        // Prevent zooming on iOS
+        this.fakeElem.style.fontSize = '12pt'
+        // Reset box model
+        this.fakeElem.style.border = '0'
+        this.fakeElem.style.padding = '0'
+        this.fakeElem.style.margin = '0'
+        // Move element out of screen horizontally
+        this.fakeElem.style.position = 'fixed'
+        this.fakeElem.style[isRTL ? 'right' : 'left'] = '-9999px'
+        // Move element to the same position vertically
+        this.fakeElem.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px'
+        this.fakeElem.setAttribute('readonly', '')
+        this.fakeElem.value = text
+
+        document.body.appendChild(this.fakeElem)
+
+        this.selectedText = select(this.fakeElem)
+
+        this.copyText()
+      },
+
+      /**
+       * Only removes the fake element after another click event, that way
+       * a user can hit `Ctrl+C` to copy because selection still exists.
+       */
+      removeFake: function() {
+        if (this.fakeHandler) {
+          document.body.removeEventListener('click')
+          this.fakeHandler = null
+        }
+
+        if (this.fakeElem) {
+          document.body.removeChild(this.fakeElem)
+          this.fakeElem = null
+        }
+      },
+
+      /**
+       * Executes the copy operation based on the current selection.
+       */
+      copyText: function() {
+        var succeeded
+        try {
+          succeeded = document.execCommand('copy')
+        } catch (err) {
+          succeeded = false
+        }
+        this.handleResult(succeeded)
+      },
+      handleResult: function(succeeded) {
+        if (succeeded) {
+          this.params.success && this.params.success()
+        } else {
+          this.params.error && this.params.error()
+        }
+      }
+    })
+  }
+
+  function select(element) {
+    var selectedText
+
+    if (element.nodeName === 'INPUT' || element.nodeName === 'TEXTAREA') {
+      element.focus()
+      element.setSelectionRange(0, element.value.length)
+
+      selectedText = element.value
+    } else {
+      if (element.hasAttribute('contenteditable')) {
+        element.focus()
+      }
+
+      var selection = window.getSelection()
+      var range = document.createRange()
+
+      range.selectNodeContents(element)
+      selection.removeAllRanges()
+      selection.addRange(range)
+
+      selectedText = selection.toString()
+    }
+
+    return selectedText
+  }
+
+  if (true) {
+    module.exports = vueClipboard
+  } else if (typeof define == "function" && define.amd) {
+    define([], function() {
+      return vueClipboard
+    })
+  } else if (window.Vue) {
+    window.vueClipboard = vueClipboard
+    Vue.use(vueClipboard)
+  }
+
+})()
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
 var disposed = false
 var normalizeComponent = __webpack_require__(10)
 /* script */
-var __vue_script__ = __webpack_require__(41)
+var __vue_script__ = __webpack_require__(42)
 /* template */
-var __vue_template__ = __webpack_require__(42)
+var __vue_template__ = __webpack_require__(43)
 /* template functional */
   var __vue_template_functional__ = false
 /* styles */
@@ -42687,7 +42837,7 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -42716,7 +42866,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -42759,15 +42909,15 @@ if (false) {
 }
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 var normalizeComponent = __webpack_require__(10)
 /* script */
-var __vue_script__ = __webpack_require__(44)
+var __vue_script__ = __webpack_require__(45)
 /* template */
-var __vue_template__ = __webpack_require__(45)
+var __vue_template__ = __webpack_require__(46)
 /* template functional */
   var __vue_template_functional__ = false
 /* styles */
@@ -42807,11 +42957,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -42890,7 +43046,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             button: {
                 text: 'Create VM'
             },
-            disableCreateVM: false
+            disableCreateVM: false,
+            disableDestroy: false
 
         };
     },
@@ -42903,8 +43060,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             axios.get('/azure/vm/stop/' + vm_name).then(function (response) {
 
-                alert(response.data.status);
-
                 that.vms = response.data.vms;
             });
         },
@@ -42914,7 +43069,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             axios.get('/azure/vm/start/' + vm_name).then(function (response) {
 
-                alert(response.data.status);
+                alert('VM Started!');
 
                 that.vms = response.data.vms;
             });
@@ -42941,9 +43096,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         },
         deleteAzureVM: function deleteAzureVM(vm_id) {
 
-            axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
-                that.vms = response.data.vms;
-            });
+            this.disableDestroy = true;
+
+            var con = confirm('Are you sure?');
+
+            var that = this;
+
+            if (con) {
+                axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
+                    that.vms = response.data.vms;
+                });
+            }
         }
     },
 
@@ -42958,7 +43121,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -42966,246 +43129,263 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", [
-    _c("h1", { staticClass: "title has-text-centered" }, [
-      _vm._v("Virtual Machines")
-    ]),
-    _vm._v(" "),
-    _c("table", { staticClass: "table vm-table" }, [
-      _vm._m(0),
-      _vm._v(" "),
-      _c(
-        "tbody",
-        _vm._l(_vm.vms, function(vm) {
-          return _c("tr", [
-            _c("td", [
-              _c("span", { staticClass: "vm_name" }, [_vm._v(_vm._s(vm.vm))]),
-              _vm._v(" "),
-              _c("br"),
-              _vm._v(" "),
-              _c("span", { staticClass: "vm_info" }, [
-                _vm._v(
-                  _vm._s(vm.os_type) +
-                    " / " +
-                    _vm._s(vm.os_disk_size) +
-                    " GB / " +
-                    _vm._s(vm.vm_size) +
-                    " / " +
-                    _vm._s(vm.location)
-                )
-              ])
-            ]),
-            _vm._v(" "),
-            _c("td", { staticClass: "smaller-fonts" }, [
-              _vm._v(_vm._s(vm.admin_username))
-            ]),
-            _vm._v(" "),
-            _c("td", { staticClass: "smaller-fonts" }, [
-              _vm._v(_vm._s(vm.ip_address))
-            ]),
-            _vm._v(" "),
-            _c(
-              "td",
-              {
-                directives: [
-                  {
-                    name: "show",
-                    rawName: "v-show",
-                    value: vm.status == "up",
-                    expression: " vm.status == 'up' "
-                  }
-                ],
-                staticClass: "smaller-fonts"
-              },
-              [
-                _c(
-                  "a",
-                  {
-                    attrs: { href: "#" },
-                    on: {
-                      click: function($event) {
-                        $event.preventDefault()
-                        _vm.stopVM(vm.id)
-                      }
-                    }
-                  },
-                  [_vm._v("Stop VM")]
-                )
-              ]
-            ),
-            _vm._v(" "),
-            _c(
-              "td",
-              {
-                directives: [
-                  {
-                    name: "show",
-                    rawName: "v-show",
-                    value: vm.status == "down",
-                    expression: " vm.status == 'down' "
-                  }
-                ],
-                staticClass: "smaller-fonts"
-              },
-              [
-                _c(
-                  "a",
-                  {
-                    attrs: { href: "#" },
-                    on: {
-                      click: function($event) {
-                        $event.preventDefault()
-                        _vm.startVM(vm.id)
-                      }
-                    }
-                  },
-                  [_vm._v("Start VM")]
-                )
-              ]
-            ),
-            _vm._v(" "),
-            _c("td", [
-              _c(
-                "button",
-                {
-                  staticClass: "button is-danger is-outlined",
-                  staticStyle: { "font-size": "14px" },
-                  on: {
-                    click: function($event) {
-                      $event.preventDefault()
-                      _vm.deleteAzureVM(vm.id)
-                    }
-                  }
-                },
-                [_vm._v("Destroy")]
-              )
-            ])
-          ])
-        })
-      )
-    ]),
-    _vm._v(" "),
     _c("br"),
     _vm._v(" "),
-    _c("div", { staticClass: "columns" }, [
-      _c("div", { staticClass: "column is-offset-2" }, [
-        _c(
-          "a",
-          {
-            staticClass: "button is-primary",
-            staticStyle: { "margin-left": "-25px" },
-            attrs: { disabled: _vm.disableCreateVM },
-            on: {
-              click: function($event) {
-                $event.preventDefault()
-                _vm.showModal = true
-              }
-            }
-          },
-          [_vm._v(_vm._s(_vm.button.text))]
-        )
-      ])
-    ]),
-    _vm._v(" "),
-    _c(
-      "div",
-      {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.showModal,
-            expression: "showModal"
-          }
-        ],
-        staticClass: "modal is-active"
-      },
-      [
-        _c("div", {
-          staticClass: "modal-background",
-          on: {
-            click: function($event) {
-              $event.preventDefault()
-              _vm.showModal = false
-            }
-          }
-        }),
+    _c("div", { staticClass: "box" }, [
+      _c("h1", { staticClass: "title has-text-centered" }, [
+        _vm._v("Virtual Machines")
+      ]),
+      _vm._v(" "),
+      _c("table", { staticClass: "table vm-table" }, [
+        _vm._m(0),
         _vm._v(" "),
-        _c("div", { staticClass: "modal-card" }, [
-          _c("header", { staticClass: "modal-card-head" }, [
-            _c("p", { staticClass: "modal-card-title" }, [
-              _vm._v("Create New Virtual Machine")
-            ]),
-            _vm._v(" "),
-            _c("button", {
-              staticClass: "delete",
-              attrs: { "aria-label": "close" },
+        _c(
+          "tbody",
+          _vm._l(_vm.vms, function(vm) {
+            return _c("tr", [
+              _c("td", [
+                _c("span", { staticClass: "vm_name" }, [_vm._v(_vm._s(vm.vm))]),
+                _vm._v(" "),
+                vm.status == "up"
+                  ? _c("span", { staticClass: "tag is-success" }, [
+                      _vm._v("Running")
+                    ])
+                  : _c("span", { staticClass: "tag is-dark" }, [
+                      _vm._v(" Stopped ")
+                    ]),
+                _vm._v(" "),
+                _c("br"),
+                _vm._v(" "),
+                _c("span", { staticClass: "vm_info" }, [
+                  _vm._v(
+                    _vm._s(vm.os_type) +
+                      " / " +
+                      _vm._s(vm.os_disk_size) +
+                      " GB / " +
+                      _vm._s(vm.vm_size) +
+                      " / " +
+                      _vm._s(vm.location)
+                  )
+                ])
+              ]),
+              _vm._v(" "),
+              _c("td", { staticClass: "smaller-fonts" }, [
+                _vm._v(_vm._s(vm.admin_username))
+              ]),
+              _vm._v(" "),
+              _c("td", { staticClass: "smaller-fonts" }, [
+                _vm._v(_vm._s(vm.ip_address))
+              ]),
+              _vm._v(" "),
+              _c(
+                "td",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value: vm.status == "up",
+                      expression: " vm.status == 'up' "
+                    }
+                  ],
+                  staticClass: "smaller-fonts"
+                },
+                [
+                  _c(
+                    "button",
+                    {
+                      staticClass: "button is-info is-outlined",
+                      staticStyle: { "font-size": "14px" },
+                      attrs: { href: "#" },
+                      on: {
+                        click: function($event) {
+                          $event.preventDefault()
+                          _vm.stopVM(vm.id)
+                        }
+                      }
+                    },
+                    [_vm._v("Stop VM")]
+                  )
+                ]
+              ),
+              _vm._v(" "),
+              _c(
+                "td",
+                {
+                  directives: [
+                    {
+                      name: "show",
+                      rawName: "v-show",
+                      value: vm.status == "down",
+                      expression: " vm.status == 'down' "
+                    }
+                  ],
+                  staticClass: "smaller-fonts"
+                },
+                [
+                  _c(
+                    "button",
+                    {
+                      staticClass: "button is-info is-outlined",
+                      staticStyle: { "font-size": "14px" },
+                      attrs: { href: "#" },
+                      on: {
+                        click: function($event) {
+                          $event.preventDefault()
+                          _vm.startVM(vm.id)
+                        }
+                      }
+                    },
+                    [_vm._v("Start VM")]
+                  )
+                ]
+              ),
+              _vm._v(" "),
+              _c("td", [
+                _c(
+                  "button",
+                  {
+                    staticClass: "button is-danger is-outlined",
+                    staticStyle: { "font-size": "14px" },
+                    attrs: { disabled: _vm.disableDestroy },
+                    on: {
+                      click: function($event) {
+                        $event.preventDefault()
+                        _vm.deleteAzureVM(vm.id)
+                      }
+                    }
+                  },
+                  [_vm._v("Destroy")]
+                )
+              ])
+            ])
+          })
+        )
+      ]),
+      _vm._v(" "),
+      _c("br"),
+      _vm._v(" "),
+      _c("div", { staticClass: "columns" }, [
+        _c("div", { staticClass: "column is-offset-2" }, [
+          _c(
+            "button",
+            {
+              staticClass: "button is-primary",
+              staticStyle: { "margin-left": "-25px" },
+              attrs: { disabled: _vm.disableCreateVM },
               on: {
                 click: function($event) {
                   $event.preventDefault()
-                  _vm.showModal = false
+                  _vm.showModal = true
                 }
               }
-            })
-          ]),
+            },
+            [_vm._v(_vm._s(_vm.button.text))]
+          )
+        ])
+      ]),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.showModal,
+              expression: "showModal"
+            }
+          ],
+          staticClass: "modal is-active"
+        },
+        [
+          _c("div", {
+            staticClass: "modal-background",
+            on: {
+              click: function($event) {
+                $event.preventDefault()
+                _vm.showModal = false
+              }
+            }
+          }),
           _vm._v(" "),
-          _c("section", { staticClass: "modal-card-body" }, [
-            _c("div", { staticClass: "control" }, [
-              _c("input", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.new_vm_name,
-                    expression: "new_vm_name"
-                  }
-                ],
-                staticClass: "input",
-                attrs: { type: "text", placeholder: "VM Name" },
-                domProps: { value: _vm.new_vm_name },
-                on: {
-                  input: function($event) {
-                    if ($event.target.composing) {
-                      return
-                    }
-                    _vm.new_vm_name = $event.target.value
-                  }
-                }
-              })
-            ])
-          ]),
-          _vm._v(" "),
-          _c("footer", { staticClass: "modal-card-foot" }, [
-            _c(
-              "button",
-              {
-                staticClass: "button is-success",
-                on: {
-                  click: function($event) {
-                    $event.preventDefault()
-                    _vm.createNewVM()
-                  }
-                }
-              },
-              [_vm._v("Create VM")]
-            ),
-            _vm._v(" "),
-            _c(
-              "button",
-              {
-                staticClass: "button",
+          _c("div", { staticClass: "modal-card" }, [
+            _c("header", { staticClass: "modal-card-head" }, [
+              _c("p", { staticClass: "modal-card-title" }, [
+                _vm._v("Create New Virtual Machine")
+              ]),
+              _vm._v(" "),
+              _c("button", {
+                staticClass: "delete",
+                attrs: { "aria-label": "close" },
                 on: {
                   click: function($event) {
                     $event.preventDefault()
                     _vm.showModal = false
                   }
                 }
-              },
-              [_vm._v("Cancel")]
-            )
+              })
+            ]),
+            _vm._v(" "),
+            _c("section", { staticClass: "modal-card-body" }, [
+              _c("div", { staticClass: "control" }, [
+                _c("input", {
+                  directives: [
+                    {
+                      name: "model",
+                      rawName: "v-model",
+                      value: _vm.new_vm_name,
+                      expression: "new_vm_name"
+                    }
+                  ],
+                  staticClass: "input",
+                  attrs: { type: "text", placeholder: "VM Name" },
+                  domProps: { value: _vm.new_vm_name },
+                  on: {
+                    input: function($event) {
+                      if ($event.target.composing) {
+                        return
+                      }
+                      _vm.new_vm_name = $event.target.value
+                    }
+                  }
+                })
+              ])
+            ]),
+            _vm._v(" "),
+            _c("footer", { staticClass: "modal-card-foot" }, [
+              _c(
+                "button",
+                {
+                  staticClass: "button is-success",
+                  on: {
+                    click: function($event) {
+                      $event.preventDefault()
+                      _vm.createNewVM()
+                    }
+                  }
+                },
+                [_vm._v("Create VM")]
+              ),
+              _vm._v(" "),
+              _c(
+                "button",
+                {
+                  staticClass: "button",
+                  on: {
+                    click: function($event) {
+                      $event.preventDefault()
+                      _vm.showModal = false
+                    }
+                  }
+                },
+                [_vm._v("Cancel")]
+              )
+            ])
           ])
-        ])
-      ]
-    )
+        ]
+      )
+    ])
   ])
 }
 var staticRenderFns = [
@@ -43238,7 +43418,7 @@ if (false) {
 }
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
