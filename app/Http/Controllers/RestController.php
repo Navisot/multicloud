@@ -385,7 +385,9 @@ class RestController extends Controller
 
         }
 
-        echo $public_ip;
+        $vms = Azurevm::where('user_id', 1)->get();
+
+        return response()->json(['vms' => $vms], 200);
 
     }
 
@@ -417,6 +419,47 @@ class RestController extends Controller
         $object = json_decode($response);
 
         return $object->properties->ipAddress;
+
+    }
+
+    public function deleteAzureVM($vm_id) {
+
+        $vm = Azurevm::where('id', $vm_id)->first();
+
+        $token = $this->getAzureAccessToken();
+
+        $headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ];
+
+        $client = new Client();
+
+        $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'.$vm->vm.'?api-version=2016-04-30-preview';
+
+        $result = $client->delete($url,[
+
+            'headers' => $headers,
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+
+        ]);
+
+        $status_code = $result->getStatusCode();
+
+        if($status_code == 202 || $status_code == 200) {
+
+            $dvm = Azurevm::find($vm_id);
+
+            $dvm->delete();
+
+            return response()->json(['status' => 'ok'], 200);
+        }
+
+        return response()->json(['status' => 'Not Deleted'], 200);
+
+
 
     }
 

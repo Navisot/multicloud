@@ -42846,11 +42846,52 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
         return {
-            vms: []
+            vms: [],
+            showModal: false,
+            new_vm_name: '',
+            button: {
+                text: 'Create VM'
+            },
+            disableCreateVM: false
+
         };
     },
 
@@ -42877,6 +42918,32 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
                 that.vms = response.data.vms;
             });
+        },
+        createNewVM: function createNewVM() {
+
+            var that = this;
+
+            var new_name = this.new_vm_name.split(' ').join('_');
+
+            this.new_vm_name = '';
+
+            // Hide Modal - Disable Create VM Button && Show Loading
+            this.showModal = false;
+            this.disableCreateVM = true;
+            this.button.text = 'Please Wait To Create VM...';
+
+            axios.post('/azure/create/vm/' + new_name).then(function (response) {
+                that.vms = response.data.vms;
+
+                that.disableCreateVM = false;
+                that.button.text = 'Create VM';
+            });
+        },
+        deleteAzureVM: function deleteAzureVM(vm_id) {
+
+            axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
+                that.vms = response.data.vms;
+            });
         }
     },
 
@@ -42899,7 +42966,9 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", [
-    _c("h1", { staticClass: "title is-3" }, [_vm._v("Virtual Machines")]),
+    _c("h1", { staticClass: "title has-text-centered" }, [
+      _vm._v("Virtual Machines")
+    ]),
     _vm._v(" "),
     _c("table", { staticClass: "table vm-table" }, [
       _vm._m(0),
@@ -42992,11 +43061,151 @@ var render = function() {
                   [_vm._v("Start VM")]
                 )
               ]
-            )
+            ),
+            _vm._v(" "),
+            _c("td", [
+              _c(
+                "button",
+                {
+                  staticClass: "button is-danger is-outlined",
+                  staticStyle: { "font-size": "14px" },
+                  on: {
+                    click: function($event) {
+                      $event.preventDefault()
+                      _vm.deleteAzureVM(vm.id)
+                    }
+                  }
+                },
+                [_vm._v("Destroy")]
+              )
+            ])
           ])
         })
       )
-    ])
+    ]),
+    _vm._v(" "),
+    _c("br"),
+    _vm._v(" "),
+    _c("div", { staticClass: "columns" }, [
+      _c("div", { staticClass: "column is-offset-2" }, [
+        _c(
+          "a",
+          {
+            staticClass: "button is-primary",
+            staticStyle: { "margin-left": "-25px" },
+            attrs: { disabled: _vm.disableCreateVM },
+            on: {
+              click: function($event) {
+                $event.preventDefault()
+                _vm.showModal = true
+              }
+            }
+          },
+          [_vm._v(_vm._s(_vm.button.text))]
+        )
+      ])
+    ]),
+    _vm._v(" "),
+    _c(
+      "div",
+      {
+        directives: [
+          {
+            name: "show",
+            rawName: "v-show",
+            value: _vm.showModal,
+            expression: "showModal"
+          }
+        ],
+        staticClass: "modal is-active"
+      },
+      [
+        _c("div", {
+          staticClass: "modal-background",
+          on: {
+            click: function($event) {
+              $event.preventDefault()
+              _vm.showModal = false
+            }
+          }
+        }),
+        _vm._v(" "),
+        _c("div", { staticClass: "modal-card" }, [
+          _c("header", { staticClass: "modal-card-head" }, [
+            _c("p", { staticClass: "modal-card-title" }, [
+              _vm._v("Create New Virtual Machine")
+            ]),
+            _vm._v(" "),
+            _c("button", {
+              staticClass: "delete",
+              attrs: { "aria-label": "close" },
+              on: {
+                click: function($event) {
+                  $event.preventDefault()
+                  _vm.showModal = false
+                }
+              }
+            })
+          ]),
+          _vm._v(" "),
+          _c("section", { staticClass: "modal-card-body" }, [
+            _c("div", { staticClass: "control" }, [
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.new_vm_name,
+                    expression: "new_vm_name"
+                  }
+                ],
+                staticClass: "input",
+                attrs: { type: "text", placeholder: "VM Name" },
+                domProps: { value: _vm.new_vm_name },
+                on: {
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.new_vm_name = $event.target.value
+                  }
+                }
+              })
+            ])
+          ]),
+          _vm._v(" "),
+          _c("footer", { staticClass: "modal-card-foot" }, [
+            _c(
+              "button",
+              {
+                staticClass: "button is-success",
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    _vm.createNewVM()
+                  }
+                }
+              },
+              [_vm._v("Create VM")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "button",
+                on: {
+                  click: function($event) {
+                    $event.preventDefault()
+                    _vm.showModal = false
+                  }
+                }
+              },
+              [_vm._v("Cancel")]
+            )
+          ])
+        ])
+      ]
+    )
   ])
 }
 var staticRenderFns = [
@@ -43012,7 +43221,9 @@ var staticRenderFns = [
         _vm._v(" "),
         _c("th", [_vm._v("IP Address")]),
         _vm._v(" "),
-        _c("th", [_vm._v("Action")])
+        _c("th", [_vm._v("Action")]),
+        _vm._v(" "),
+        _c("th")
       ])
     ])
   }
