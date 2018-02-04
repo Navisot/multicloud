@@ -7,10 +7,14 @@ use GuzzleHttp\Client;
 use App\UserToken;
 use Carbon\Carbon;
 use App\Azurevm;
+use App\AWSvm;
+use \Aws\Ec2\Ec2Client;
+use App\Http\Libraries\CustomHelper;
 
 
 class RestController extends Controller
 {
+    // Azure
     protected $azure_tenant_id = '75eef9f9-3a1c-4c9e-b8ea-192bb3740930';
     protected $azure_subscriptionId = '5c347aaf-e734-4faf-9545-499386d2e5cd';
     protected $azure_grant_type = 'client_credentials';
@@ -21,6 +25,12 @@ class RestController extends Controller
     protected $azure_resource_group = 'DockerResourceGroup';
     protected $azure_vm_name = 'dockerVM';
     protected $azure_api_version = '2017-03-30';
+
+    // AWS
+    protected $version = 'latest';
+    protected $region = 'eu-central-1';
+    protected $aws_access_key = 'AKIAI4R5PEESHHB7JUJQ';
+    protected $aws_secret_key = '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';
 
 
     public function getAzureAccessToken() {
@@ -392,7 +402,7 @@ class RestController extends Controller
     }
 
 
-    public function getAzureVMPublicIpAddress($want_ip_label) {
+    public function getAzureVMPublicIpAddress($want_ip_label, $vm_id = null) {
 
         $token = $this->getAzureAccessToken();
 
@@ -417,6 +427,10 @@ class RestController extends Controller
         $response = $result->getBody();
 
         $object = json_decode($response);
+
+        $new_ip = $object->properties->ipAddress;
+
+        CustomHelper::updateIPAddress($vm_id,$new_ip);
 
         return $object->properties->ipAddress;
 
@@ -456,6 +470,100 @@ class RestController extends Controller
 
         return response()->json(['vms' => $vms], 200);
 
+
+    }
+
+    public function getAWSClient() {
+
+        $client = new Ec2Client([
+            'region' => $this->region,
+            'version' => $this->version,
+            'credentials' => array('key' => $this->aws_access_key, 'secret' => $this->aws_secret_key)
+        ]);
+
+        return $client;
+
+    }
+
+    // AWS
+    public function getAWSVMs(){
+
+        $ec2 = $this->getAWSClient();
+
+        $result = $ec2->describeInstances();
+
+        $vms = [];
+        $instances = $result["Reservations"][0]["Instances"];
+        foreach ($instances as $index => $instance) {
+            $vms[$index]["name"] = isset($instance["Tags"][0]["Value"]) ? $instance["Tags"][0]["Value"] : 'DEMOOOO' ;
+            $vms[$index]["status"] = $instance["State"]["Name"];
+            $vms[$index]["ip_address"] = isset($instance["PublicIpAddress"]) ? $instance["PublicIpAddress"] : "DEMOOO";
+            $vms[$index]["type"] = $instance["InstanceType"];
+            $vms[$index]["zone"] = $instance["Placement"]["AvailabilityZone"];
+        }
+
+       return $vms;
+
+    }
+
+    public function getAWSIPAddress($vm_instance_id) {
+
+        $ec2 = $this->getAWSClient();
+
+        $result = $ec2->describeInstances(['InstanceIds' => [$vm_instance_id]]);
+
+        $ip_address = isset( $result["Reservations"][0]["Instances"][0]["PublicIpAddress"] ) ? $result["Reservations"][0]["Instances"][0]["PublicIpAddress"] : '-';
+
+        return $ip_address;
+
+    }
+
+    public function createAWSVM($name) {
+
+        $ec2Client = $this->getAWSClient();
+
+        // Launch an instance with the key pair and security group
+        $result = $ec2Client->runInstances(array(
+            'ImageId'        => 'ami-2b4c2944',
+            'MinCount'       => 1,
+            'MaxCount'       => 1,
+            'InstanceType'   => 't2.micro',
+            'KeyName'        => 'mac',
+            'SecurityGroups' => array('api-sg'),
+            'TagSpecifications' => [
+                [
+                    'ResourceType' => 'instance',
+                    'Tags' => [
+                        [
+                            'Key' => 'Name',
+                            'Value' => $name,
+                        ],
+                    ],
+                ],
+            ],
+
+        ));
+
+        $instance = $result->get("Instances")[0];
+
+        $new_aws_vm = new AWSvm();
+
+        $new_aws_vm->vm = $instance["Tags"][0]["Value"];
+        $new_aws_vm->ip_address = ''; // Get It Later
+        $new_aws_vm->vm_size = $instance["InstanceType"];
+        $new_aws_vm->instance_id = $instance["InstanceId"];
+        $new_aws_vm->status = ($instance["State"]["Name"] == 'pending') ? 'down' : 'up';
+        $new_aws_vm->location = $instance["Placement"]["AvailabilityZone"];
+        $new_aws_vm->vpc_id = $instance["VpcId"];
+        $new_aws_vm->image_id = $instance["ImageId"];
+        $new_aws_vm->security_group_id = $instance["SecurityGroups"][0]["GroupId"];
+        $new_aws_vm->user_id = 1;
+
+        $new_aws_vm->save();
+
+        dd($instance);
+
+        return 'Done!';
 
     }
 

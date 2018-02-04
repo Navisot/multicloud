@@ -8,7 +8,6 @@
 				<thead>
 				<tr>
 					<th>Name</th>
-					<th>Username</th>
 					<th>IP Address</th>
 					<th>Action</th>
 					<th></th>
@@ -20,10 +19,9 @@
 
 						<span class="vm_name">{{vm.vm}}</span> <span class="tag is-success" v-if="vm.status == 'up'">Running</span> <span v-else class="tag is-dark"> Stopped </span>
 						<br>
-						<span class="vm_info">{{vm.os_type}} / {{vm.os_disk_size}} GB / {{vm.vm_size}} / {{vm.location}}</span>
+						<span class="vm_info">{{vm.host}} / {{vm.vm_size}} / {{vm.location}}</span>
 
 					</td>
-					<td class="smaller-fonts">{{vm.admin_username}}</td>
 					<td class="smaller-fonts">{{vm.ip_address}}</td>
 					<td class="smaller-fonts" v-show=" vm.status == 'up' ">
 						<button href="#" class="button is-info is-outlined" style="font-size:14px;" @click.prevent="stopVM(vm.id)">Stop VM</button>
@@ -148,6 +146,7 @@
 				if (con) {
                     axios.post('/azure/delete/vm/' + vm_id).then(function(response){
                         that.vms = response.data.vms;
+                        that.disableDestroy = false;
                     });
 				}
 

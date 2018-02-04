@@ -43034,8 +43034,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
@@ -43105,6 +43103,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             if (con) {
                 axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
                     that.vms = response.data.vms;
+                    that.disableDestroy = false;
                 });
             }
         }
@@ -43158,19 +43157,13 @@ var render = function() {
                 _vm._v(" "),
                 _c("span", { staticClass: "vm_info" }, [
                   _vm._v(
-                    _vm._s(vm.os_type) +
+                    _vm._s(vm.host) +
                       " / " +
-                      _vm._s(vm.os_disk_size) +
-                      " GB / " +
                       _vm._s(vm.vm_size) +
                       " / " +
                       _vm._s(vm.location)
                   )
                 ])
-              ]),
-              _vm._v(" "),
-              _c("td", { staticClass: "smaller-fonts" }, [
-                _vm._v(_vm._s(vm.admin_username))
               ]),
               _vm._v(" "),
               _c("td", { staticClass: "smaller-fonts" }, [
@@ -43396,8 +43389,6 @@ var staticRenderFns = [
     return _c("thead", [
       _c("tr", [
         _c("th", [_vm._v("Name")]),
-        _vm._v(" "),
-        _c("th", [_vm._v("Username")]),
         _vm._v(" "),
         _c("th", [_vm._v("IP Address")]),
         _vm._v(" "),

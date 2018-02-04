@@ -12,6 +12,8 @@ Route::get('/vms', function(){
 
 });
 
+// Azure Actions
+
 Route::prefix('azure')->group(function () {
     Route::get('/vm/stop/{vm_id}', ['uses' => 'RestController@stopAzureVM', 'as' => 'azure.vm.stop']);
     Route::get('/vm/start/{vm_id}', ['uses' => 'RestController@startAzureVM', 'as' => 'azure.vm.start']);
@@ -21,5 +23,35 @@ Route::prefix('azure')->group(function () {
     Route::post('/delete/vm/{vmname}', ['uses' => 'RestController@deleteAzureVM', 'as' => 'azure.delete.vm']);
 });
 
+// AWS Actions
+
+Route::prefix('aws')->group(function(){
+
+    Route::get('/create/vm/{name}', ['uses' => 'RestController@createAWSVM', 'as' => 'aws.create.vm']);
+
+});
+
 
 Route::get('vms/user/{user_id}', ['uses' => 'ActionController@getVirtualMachines', 'as' => 'get.vms']);
+
+use App\AWSvm;
+use App\Azurevm;
+use App\Http\Libraries\CustomHelper;
+use \Aws\Ec2\Ec2Client;
+
+Route::get('testero', function(){
+
+    $client = new Ec2Client([
+        'region' => 'eu-central-1',
+        'version' => 'latest',
+        'credentials' => array('key' => env('AWS_ACCESS_KEY'), 'secret' => env('AWS_SECRET_KEY'))
+    ]);
+
+    $result = $client->describeInstances(['InstanceIds' => ['i-097c4b1849c04d123']]);
+
+    $ip_address = $result["Reservations"][0]["Instances"][0]["PublicIpAddress"];
+
+    dd($ip_address);
+
+
+});
