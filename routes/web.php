@@ -27,7 +27,7 @@ Route::prefix('azure')->group(function () {
 
 Route::prefix('aws')->group(function(){
 
-    Route::get('/create/vm/{name}', ['uses' => 'RestController@createAWSVM', 'as' => 'aws.create.vm']);
+    Route::post('/create/vm/{name}', ['uses' => 'RestController@createAWSVM', 'as' => 'aws.create.vm']);
 
 });
 
@@ -47,9 +47,9 @@ Route::get('testero', function(){
         'credentials' => array('key' => env('AWS_ACCESS_KEY'), 'secret' => env('AWS_SECRET_KEY'))
     ]);
 
-    $result = $client->describeInstances(['InstanceIds' => ['i-097c4b1849c04d123']]);
+    $result = $client->describeInstances(['InstanceIds' => ['i-07bb40c91be5ab063']]);
 
-    $ip_address = $result["Reservations"][0]["Instances"][0]["PublicIpAddress"];
+    $ip_address = $result["Reservations"][0]["Instances"][0];
 
     dd($ip_address);
 

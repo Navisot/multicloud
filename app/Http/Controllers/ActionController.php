@@ -20,6 +20,7 @@ class ActionController extends RestController
                 'azure' => $item['azure'],
                 'aws' => $item['aws'],
                 'vm' => $item['vm'],
+                'id' => $item['id'],
                 'vm_size' => $item['vm_size'],
                 'host' => 'AZURE',
                 'location' => $item['location'],
@@ -29,15 +30,21 @@ class ActionController extends RestController
         },$azure_vms);
 
         $map_aws = array_map(function($item){
+
+            $api_results = $this->getAWSIPAddressAndStatus($item['instance_id']);
+            $status = $api_results['status'];
+            $ip_address = $api_results['ip_address'];
+
             return [
                 'azure' => $item['azure'],
                 'aws' => $item['aws'],
                 'vm' => $item['vm'],
+                'id' => $item['id'],
                 'vm_size' => $item['vm_size'],
                 'host' => 'AWS',
                 'location' => $item['location'],
-                'status' => $item['status'],
-                'ip_address' => $this->getAWSIPAddress($item['instance_id'])
+                'status' => $status,
+                'ip_address' => $ip_address
             ];
         },$aws_vms);
 

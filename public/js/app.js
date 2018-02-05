@@ -43034,6 +43034,23 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
@@ -43045,8 +43062,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 text: 'Create VM'
             },
             disableCreateVM: false,
-            disableDestroy: false
-
+            disableDestroy: false,
+            host: 0,
+            options: [{ label: 'Amazon Web Services', value: 1 }, { label: 'Microsoft Azure', value: 2 }]
         };
     },
 
@@ -43080,17 +43098,56 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             this.new_vm_name = '';
 
+            var selected_host = this.host;
+
+            this.host = 0;
+
             // Hide Modal - Disable Create VM Button && Show Loading
             this.showModal = false;
             this.disableCreateVM = true;
             this.button.text = 'Please Wait To Create VM...';
 
-            axios.post('/azure/create/vm/' + new_name).then(function (response) {
-                that.vms = response.data.vms;
+            if (selected_host.length > 1)
+                // We have multiple host providers
+                {
 
-                that.disableCreateVM = false;
-                that.button.text = 'Create VM';
-            });
+                    for (var host in selected_host) {
+
+                        if (host == 1) {
+                            // Create AWS VM
+                            axios.post('/aws/create/vm/' + new_name).then(function (response) {
+                                that.disableCreateVM = false;
+                                that.button.text = 'Create VM';
+                            });
+                        } else {
+                            // Create Azure VM
+                            axios.post('/azure/create/vm/' + new_name).then(function (response) {
+                                that.disableCreateVM = false;
+                                that.button.text = 'Create VM';
+                            });
+                        }
+                    }
+
+                    // Todo Make A Call To Get Available VMS as example:  that.vms = response.data.vms;
+                } else // we have 1 host provider
+                {
+
+                    if (host == 1) {
+                        // Create AWS VM
+                        axios.post('/aws/create/vm/' + new_name).then(function (response) {
+                            that.vms = response.data.vms;
+                            that.disableCreateVM = false;
+                            that.button.text = 'Create VM';
+                        });
+                    } else {
+                        // Create Azure VM
+                        axios.post('/azure/create/vm/' + new_name).then(function (response) {
+                            that.vms = response.data.vms;
+                            that.disableCreateVM = false;
+                            that.button.text = 'Create VM';
+                        });
+                    }
+                }
         },
         deleteAzureVM: function deleteAzureVM(vm_id) {
 
@@ -43156,12 +43213,9 @@ var render = function() {
                 _c("br"),
                 _vm._v(" "),
                 _c("span", { staticClass: "vm_info" }, [
+                  _c("strong", [_vm._v(_vm._s(vm.host))]),
                   _vm._v(
-                    _vm._s(vm.host) +
-                      " / " +
-                      _vm._s(vm.vm_size) +
-                      " / " +
-                      _vm._s(vm.location)
+                    " / " + _vm._s(vm.vm_size) + " / " + _vm._s(vm.location)
                   )
                 ])
               ]),
@@ -43321,28 +43375,106 @@ var render = function() {
             ]),
             _vm._v(" "),
             _c("section", { staticClass: "modal-card-body" }, [
-              _c("div", { staticClass: "control" }, [
-                _c("input", {
-                  directives: [
-                    {
-                      name: "model",
-                      rawName: "v-model",
-                      value: _vm.new_vm_name,
-                      expression: "new_vm_name"
-                    }
-                  ],
-                  staticClass: "input",
-                  attrs: { type: "text", placeholder: "VM Name" },
-                  domProps: { value: _vm.new_vm_name },
-                  on: {
-                    input: function($event) {
-                      if ($event.target.composing) {
-                        return
+              _c("div", { staticClass: "field" }, [
+                _c(
+                  "label",
+                  {
+                    staticClass: "label is-small",
+                    staticStyle: { "text-align": "left" }
+                  },
+                  [_vm._v("Host:")]
+                ),
+                _vm._v(" "),
+                _c("div", { staticClass: "control" }, [
+                  _c(
+                    "div",
+                    { staticClass: "select is-fullwidth is-multiple" },
+                    [
+                      _c(
+                        "select",
+                        {
+                          directives: [
+                            {
+                              name: "model",
+                              rawName: "v-model",
+                              value: _vm.host,
+                              expression: "host"
+                            }
+                          ],
+                          attrs: { multiple: "", size: "3" },
+                          on: {
+                            change: function($event) {
+                              var $$selectedVal = Array.prototype.filter
+                                .call($event.target.options, function(o) {
+                                  return o.selected
+                                })
+                                .map(function(o) {
+                                  var val = "_value" in o ? o._value : o.value
+                                  return val
+                                })
+                              _vm.host = $event.target.multiple
+                                ? $$selectedVal
+                                : $$selectedVal[0]
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "option",
+                            {
+                              attrs: { disabled: "", selected: "", value: "" }
+                            },
+                            [_vm._v("-- Choose At Least One Host Provider --")]
+                          ),
+                          _vm._v(" "),
+                          _vm._l(_vm.options, function(option) {
+                            return _c(
+                              "option",
+                              { domProps: { value: option.value } },
+                              [_vm._v(_vm._s(option.label))]
+                            )
+                          })
+                        ],
+                        2
+                      )
+                    ]
+                  )
+                ])
+              ]),
+              _vm._v(" "),
+              _c("div", { staticClass: "field" }, [
+                _c(
+                  "label",
+                  {
+                    staticClass: "label is-small",
+                    staticStyle: { "text-align": "left" }
+                  },
+                  [_vm._v("VM Name:")]
+                ),
+                _vm._v(" "),
+                _c("div", { staticClass: "control" }, [
+                  _c("input", {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.new_vm_name,
+                        expression: "new_vm_name"
                       }
-                      _vm.new_vm_name = $event.target.value
+                    ],
+                    staticClass: "input",
+                    attrs: { type: "text", required: "" },
+                    domProps: { value: _vm.new_vm_name },
+                    on: {
+                      input: function($event) {
+                        if ($event.target.composing) {
+                          return
+                        }
+                        _vm.new_vm_name = $event.target.value
+                      }
                     }
-                  }
-                })
+                  })
+                ])
               ])
             ]),
             _vm._v(" "),

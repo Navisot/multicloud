@@ -395,7 +395,7 @@ class RestController extends Controller
 
         }
 
-        $vms = Azurevm::where('user_id', 1)->get();
+        $vms = $this->getVirtualMachines(1);
 
         return response()->json(['vms' => $vms], 200);
 
@@ -506,7 +506,7 @@ class RestController extends Controller
 
     }
 
-    public function getAWSIPAddress($vm_instance_id) {
+    public function getAWSIPAddressAndStatus($vm_instance_id) {
 
         $ec2 = $this->getAWSClient();
 
@@ -514,7 +514,9 @@ class RestController extends Controller
 
         $ip_address = isset( $result["Reservations"][0]["Instances"][0]["PublicIpAddress"] ) ? $result["Reservations"][0]["Instances"][0]["PublicIpAddress"] : '-';
 
-        return $ip_address;
+        $status = ( $result["Reservations"][0]["Instances"][0]["State"]["Name"] == 'running' ) ? 'up' : 'down';
+
+        return ['ip_address' => $ip_address, 'status' => $status];
 
     }
 
@@ -561,9 +563,56 @@ class RestController extends Controller
 
         $new_aws_vm->save();
 
-        dd($instance);
+        $vms = $this->getVirtualMachines(1);
 
-        return 'Done!';
+        return response()->json(['vms' => $vms], 200);
+
+    }
+
+    public function getVirtualMachines($user_id) {
+
+        $azure_vms = Azurevm::where('user_id', $user_id)->get()->toArray();
+
+        $aws_vms = AWSvm::where('user_id', $user_id)->get()->toArray();
+
+        $map_azure = array_map(function($item){
+            return [
+                'azure' => $item['azure'],
+                'aws' => $item['aws'],
+                'vm' => $item['vm'],
+                'id' => $item['id'],
+                'vm_size' => $item['vm_size'],
+                'host' => 'AZURE',
+                'location' => $item['location'],
+                'status' => $item['status'],
+                'ip_address' => $this->getAzureVMPublicIpAddress($item['ip_label'], $item['id']),
+            ];
+        },$azure_vms);
+
+        $map_aws = array_map(function($item){
+
+            $api_results = $this->getAWSIPAddressAndStatus($item['instance_id']);
+            $status = $api_results['status'];
+            $ip_address = $api_results['ip_address'];
+
+            return [
+                'azure' => $item['azure'],
+                'aws' => $item['aws'],
+                'vm' => $item['vm'],
+                'id' => $item['id'],
+                'vm_size' => $item['vm_size'],
+                'host' => 'AWS',
+                'location' => $item['location'],
+                'status' => $status,
+                'ip_address' => $ip_address
+            ];
+        },$aws_vms);
+
+
+        $all_vms = array_merge($map_azure, $map_aws);
+
+
+        return $all_vms;
 
     }
 

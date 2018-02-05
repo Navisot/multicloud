@@ -19,7 +19,7 @@
 
 						<span class="vm_name">{{vm.vm}}</span> <span class="tag is-success" v-if="vm.status == 'up'">Running</span> <span v-else class="tag is-dark"> Stopped </span>
 						<br>
-						<span class="vm_info">{{vm.host}} / {{vm.vm_size}} / {{vm.location}}</span>
+						<span class="vm_info"><strong>{{vm.host}}</strong> / {{vm.vm_size}} / {{vm.location}}</span>
 
 					</td>
 					<td class="smaller-fonts">{{vm.ip_address}}</td>
@@ -53,9 +53,26 @@
 					<button class="delete" aria-label="close" @click.prevent="showModal=false"></button>
 				</header>
 				<section class="modal-card-body">
-					<div class="control">
-						<input class="input" type="text" v-model="new_vm_name" placeholder="VM Name">
+
+					<div class="field">
+						<label class="label is-small" style="text-align: left">Host:</label>
+						<div class="control">
+							<div class="select is-fullwidth is-multiple">
+								<select multiple size="3" v-model="host">
+									<option disabled selected value>-- Choose At Least One Host Provider --</option>
+									<option v-for="option in options" :value="option.value">{{ option.label }}</option>
+								</select>
+							</div>
+						</div>
 					</div>
+
+					<div class="field">
+						<label class="label is-small" style="text-align: left">VM Name:</label>
+						<div class="control">
+							<input class="input" type="text" v-model="new_vm_name" required>
+						</div>
+					</div>
+
 				</section>
 				<footer class="modal-card-foot">
 					<button class="button is-success" @click.prevent="createNewVM()">Create VM</button>
@@ -82,8 +99,12 @@
                     text: 'Create VM'
 				},
 				disableCreateVM: false,
-                disableDestroy: false
-
+                disableDestroy: false,
+                host: 0,
+                options: [
+                    { label: 'Amazon Web Services', value:1 },
+                    { label: 'Microsoft Azure', value: 2 }
+                ]
 			}
 		},
 
@@ -121,18 +142,59 @@
 
                 this.new_vm_name = '';
 
+                var selected_host = this.host;
+
+                this.host = 0;
+
                 // Hide Modal - Disable Create VM Button && Show Loading
 				this.showModal = false;
                 this.disableCreateVM = true;
                 this.button.text = 'Please Wait To Create VM...'
 
+				if(selected_host.length > 1)
+				// We have multiple host providers
+				{
 
-			    axios.post('/azure/create/vm/' + new_name).then(function(response){
-                    that.vms = response.data.vms;
+					for(var host in selected_host) {
 
-                    that.disableCreateVM = false;
-                    that.button.text = 'Create VM';
-				});
+						if (host == 1) { // Create AWS VM
+							axios.post('/aws/create/vm/' + new_name).then(function (response) {
+								that.disableCreateVM = false;
+								that.button.text = 'Create VM';
+							});
+						}
+						else {
+							// Create Azure VM
+							axios.post('/azure/create/vm/' + new_name).then(function (response) {
+								that.disableCreateVM = false;
+								that.button.text = 'Create VM';
+							});
+						}
+					}
+
+					// Todo Make A Call To Get Available VMS as example:  that.vms = response.data.vms;
+
+                }
+                else // we have 1 host provider
+				{
+
+                    if (host == 1) { // Create AWS VM
+                        axios.post('/aws/create/vm/' + new_name).then(function (response) {
+                            that.vms = response.data.vms;
+                            that.disableCreateVM = false;
+                            that.button.text = 'Create VM';
+                        });
+                    }
+                    else {
+                        // Create Azure VM
+                        axios.post('/azure/create/vm/' + new_name).then(function (response) {
+                            that.vms = response.data.vms;
+                            that.disableCreateVM = false;
+                            that.button.text = 'Create VM';
+                        });
+                    }
+
+				}
 			},
 
 			deleteAzureVM(vm_id) {
