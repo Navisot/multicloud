@@ -40,7 +40,7 @@
 		<!-- Create VM Button -->
 		<div class="columns">
 			<div class="column is-offset-2" >
-				<button class="button is-primary" :disabled="disableCreateVM" @click.prevent="showModal=true" style="margin-left:-25px;">{{button.text}}</button>
+				<button class="button is-primary" :disabled="disableCreateVM" @click.prevent="showModal=true" style="margin-left:-25px;">{{button.text}} &nbsp; <span v-show="showSpinner" class="loader"></span></button>
 			</div>
 		</div>
 
@@ -75,7 +75,7 @@
 
 				</section>
 				<footer class="modal-card-foot">
-					<button class="button is-success" @click.prevent="createNewVM()">Create VM</button>
+					<button class="button is-link" @click.prevent="createNewVM()">Create VM</button>
 					<button class="button" @click.prevent="showModal=false">Cancel</button>
 				</footer>
 			</div>
@@ -88,7 +88,7 @@
 </template>
 
 <script>
-    export default {
+export default {
 
         data() {
             return {
@@ -100,11 +100,12 @@
 				},
 				disableCreateVM: false,
                 disableDestroy: false,
-                host: 0,
+                host: [],
                 options: [
                     { label: 'Amazon Web Services', value:1 },
                     { label: 'Microsoft Azure', value: 2 }
-                ]
+                ],
+                showSpinner: false
 			}
 		},
 
@@ -144,57 +145,72 @@
 
                 var selected_host = this.host;
 
-                this.host = 0;
+                this.host = [];
 
                 // Hide Modal - Disable Create VM Button && Show Loading
-				this.showModal = false;
+                this.showModal = false;
                 this.disableCreateVM = true;
                 this.button.text = 'Please Wait To Create VM...'
+                this.showSpinner = true;
 
-				if(selected_host.length > 1)
-				// We have multiple host providers
-				{
+                if (selected_host.length > 1) {
 
-					for(var host in selected_host) {
-
-						if (host == 1) { // Create AWS VM
-							axios.post('/aws/create/vm/' + new_name).then(function (response) {
-								that.disableCreateVM = false;
-								that.button.text = 'Create VM';
-							});
-						}
-						else {
-							// Create Azure VM
-							axios.post('/azure/create/vm/' + new_name).then(function (response) {
-								that.disableCreateVM = false;
-								that.button.text = 'Create VM';
-							});
-						}
-					}
-
-					// Todo Make A Call To Get Available VMS as example:  that.vms = response.data.vms;
+                    // Create Multiple VMS
+                    this.createMultipleVms(selected_host, new_name);
 
                 }
-                else // we have 1 host provider
-				{
+                else {
+
+                    // Create Single VM In One Selected Host
+                    var selected = JSON.parse(JSON.stringify(selected_host))
+
+                        if (selected == 1) {
+
+                        	// Create AWS VM
+							axios.post('/aws/create/vm/' + new_name).then(function (response) {
+                                that.vms = response.data.vms;
+                                that.disableCreateVM = false;
+                                that.showSpinner = false;
+                                that.button.text = 'Create VM';
+                            });
+                        }
+                        else {
+
+                        	// Create Azure VM
+                            axios.post('/azure/create/vm/' + new_name).then(function (response) {
+                                that.vms = response.data.vms;
+                                that.disableCreateVM = false;
+                                that.showSpinner = false;
+                                that.button.text = 'Create VM';
+                            });
+                        }
+
+
+                }
+            },
+
+			createMultipleVms(selected_host, new_name) {
+
+                for(var host in selected_host) {
 
                     if (host == 1) { // Create AWS VM
                         axios.post('/aws/create/vm/' + new_name).then(function (response) {
-                            that.vms = response.data.vms;
-                            that.disableCreateVM = false;
-                            that.button.text = 'Create VM';
+
                         });
                     }
                     else {
+						
                         // Create Azure VM
-                        axios.post('/azure/create/vm/' + new_name).then(function (response) {
-                            that.vms = response.data.vms;
-                            that.disableCreateVM = false;
-                            that.button.text = 'Create VM';
+                        axios.post('/aws/create/vm/' + new_name +'2').then(function (response) {
+
+                            axios.get('/vms/user/1').then(function (response) {
+                                location.reload();
+                            });
+
                         });
                     }
+                }
 
-				}
 			},
 
 			deleteAzureVM(vm_id) {
