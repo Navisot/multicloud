@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Aws\CodeDeploy\CodeDeployClient;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use App\UserToken;
@@ -29,8 +30,8 @@ class RestController extends Controller
     // AWS
     protected $version = 'latest';
     protected $region = 'eu-central-1';
-    protected $aws_access_key = 'AKIAI4R5PEESHHB7JUJQ';
-    protected $aws_secret_key = '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';
+    protected $aws_access_key = 'AKIAJNJJ75WMLLNOL5PQ';
+    protected $aws_secret_key = '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';
 
 
     public function getAzureAccessToken() {
@@ -395,7 +396,7 @@ class RestController extends Controller
 
         }
 
-        $vms = $this->getVirtualMachines(1);
+        $vms = $this->getVirtualMachines();
 
         return response()->json(['vms' => $vms], 200);
 
@@ -466,7 +467,30 @@ class RestController extends Controller
             $vm->delete();
         }
 
-        $vms = Azurevm::where('user_id', 1)->get();
+        $vms = $this->getVirtualMachines();
+
+        return response()->json(['vms' => $vms], 200);
+
+
+    }
+
+    public function deleteAwsVM($vm_id) {
+
+        $vm = AWSvm::where('id', $vm_id)->first();
+
+        $instance_id = $vm->instance_id;
+
+        $ec2 = $this->getAWSClient();
+
+        $result = $ec2->terminateInstances([
+            'InstanceIds' => [$instance_id]
+        ]);
+
+        if($result) {
+            $vm->delete();
+        }
+
+        $vms = $this->getVirtualMachines();
 
         return response()->json(['vms' => $vms], 200);
 
@@ -476,6 +500,18 @@ class RestController extends Controller
     public function getAWSClient() {
 
         $client = new Ec2Client([
+            'region' => $this->region,
+            'version' => $this->version,
+            'credentials' => array('key' => $this->aws_access_key, 'secret' => $this->aws_secret_key)
+        ]);
+
+        return $client;
+
+    }
+
+    public function getAWSCodeDeployClient() {
+
+        $client = new CodeDeployClient([
             'region' => $this->region,
             'version' => $this->version,
             'credentials' => array('key' => $this->aws_access_key, 'secret' => $this->aws_secret_key)
@@ -526,12 +562,16 @@ class RestController extends Controller
 
         // Launch an instance with the key pair and security group
         $result = $ec2Client->runInstances(array(
-            'ImageId'        => 'ami-2b4c2944',
+            'ImageId'        => 'ami-2a83ec45',
             'MinCount'       => 1,
             'MaxCount'       => 1,
             'InstanceType'   => 't2.micro',
             'KeyName'        => 'mac',
             'SecurityGroups' => array('api-sg'),
+            'IamInstanceProfile' => [
+                'Arn' => 'arn:aws:iam::477898490023:instance-profile/EC2CodeDeployRole',
+                //'Name' => 'EC2CodeDeployRole',
+            ],
             'TagSpecifications' => [
                 [
                     'ResourceType' => 'instance',
@@ -563,13 +603,15 @@ class RestController extends Controller
 
         $new_aws_vm->save();
 
-        $vms = $this->getVirtualMachines(1);
+        $vms = $this->getVirtualMachines();
 
         return response()->json(['vms' => $vms], 200);
 
     }
 
-    public function getVirtualMachines($user_id) {
+    public function getVirtualMachines() {
+
+        $user_id = 1;
 
         $azure_vms = Azurevm::where('user_id', $user_id)->get()->toArray();
 
@@ -613,6 +655,164 @@ class RestController extends Controller
 
 
         return $all_vms;
+
+    }
+
+    public function doActionAWSVM(Request $request, $vm_id) {
+
+        $action = $request['action'];
+
+        $ec2Client = $this->getAWSClient();
+
+        $aws_instance_id = AWSvm::where('id', $vm_id)->first()->instance_id;
+
+        $instanceIds = array($aws_instance_id);
+
+        if ($action == 'START') {
+
+            $update['status'] = 'up';
+
+            AWSvm::where('id', $vm_id)->update($update);
+
+            sleep(10);
+
+            $result = $ec2Client->startInstances(array(
+                'InstanceIds' => $instanceIds,
+            ));
+
+
+        } else {
+
+            $update['status'] = 'down';
+
+            AWSvm::where('id', $vm_id)->update($update);
+
+            sleep(10);
+
+            $result = $ec2Client->stopInstances(array(
+                'InstanceIds' => $instanceIds,
+            ));
+
+        }
+
+        return response()->json(['status' => 'OK'], 200);
+
+
+    }
+
+    public function deployCode(Request $request) {
+
+        $application_code = $request->app_code;
+        $application_name = $request->app_name;
+
+        $exploded = explode(',', $application_code);
+        $decoded = base64_decode($exploded[1]);
+
+        if(str_contains($exploded[0], 'zip')) {
+            $extension = 'zip';
+        } else {
+            return response()->json(['status' => 'Not Found'], 404);
+        }
+
+        $filename = str_random(12) . '.' . $extension;
+
+        $path = public_path() . '/user_data/' . $filename;
+
+        file_put_contents($path, $decoded);
+
+        $aws_file = '/users/' . $filename;
+
+        $s3 = \Storage::disk('s3');
+
+        $s3->put($aws_file, file_get_contents($path), 'public');
+
+        $deployment = $this->createAWSDeployment();
+
+        return response()->json(['deployment' => $deployment], 200);
+
+    }
+
+    public function createAWSDeployment() {
+
+        $ec2 = $this->getAWSCodeDeployClient();
+
+        $ec2->createApplication([
+            'applicationName' => 'user1application', // REQUIRED
+            'computePlatform' => 'Server',
+        ]);
+
+
+        $ec2->createDeploymentGroup
+        ([
+            'alarmConfiguration' => [
+                'enabled' =>  false,
+            ],
+            'applicationName' => 'user1application', // REQUIRED
+            'autoRollbackConfiguration' => [
+                'enabled' => false,
+            ],
+            'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+            'deploymentGroupName' => 'user1application_dg', // REQUIRED
+            'deploymentStyle' => [
+                    'deploymentOption' => 'WITHOUT_TRAFFIC_CONTROL',
+                    'deploymentType' => 'IN_PLACE',
+            ],
+            'ec2TagFilters' => [
+                    [
+                        'Key' => 'Name',
+                        'Type' => 'KEY_AND_VALUE',
+                        'Value' => 'demo',
+                    ],
+
+                ],
+            'alarmConfiguration' => [
+                'alarms' => [
+                    [
+                        'name' => 'no',
+                    ],
+                    // ...
+                ],
+                'enabled' => false,
+                'ignorePollAlarmFailure' => false,
+            ],
+            'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole', // REQUIRED
+
+        ]);
+
+        $result = $ec2->createDeployment([
+            'applicationName' => 'user1application',
+            'autoRollbackConfiguration' => [
+                'enabled' => false,
+            ],
+            'deploymentGroupName' => 'user1application_dg',
+            'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+            'fileExistsBehavior' => 'OVERWRITE',
+            'revision' => [
+
+              'revisionType' => 'S3',
+              's3Location' => [
+                  'bucket' => 'navisotuserdata',
+                  'bundleType' => 'zip',
+                  'key' => 'users/x9B3ZH6E87Mo.zip'
+              ]
+            ],
+            'targetInstances' => [
+                'ec2TagSet' => [
+                    'ec2TagSetList' => [
+                        [
+                            [
+                                'Key' => 'Name',
+                                'Type' => 'KEY_AND_VALUE',
+                                'Value' => 'demo',
+                            ],
+
+                        ],
+                    ],
+                ],
+            ]
+        ]);
+
+        return $result;
 
     }
 

@@ -22,8 +22,8 @@ import VueClipboard from 'vue-clipboard'
 Vue.use(VueClipboard)
 Vue.use(VueAxios, axios)
 
-Vue.component('example', require('./components/Example.vue'));
-Vue.component('azure', require('./components/ListAzure.vue'));
+Vue.component('vms', require('./components/ListVMSComponent.vue'));
+Vue.component('upload', require('./components/UploadComponent.vue'));
 
 const app = new Vue({
     el: '#app'

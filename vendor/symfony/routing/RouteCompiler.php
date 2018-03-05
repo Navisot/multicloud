@@ -210,7 +210,7 @@ class RouteCompiler implements RouteCompilerInterface
         for ($i = 0, $nbToken = count($tokens); $i < $nbToken; ++$i) {
             $regexp .= self::computeRegexp($tokens, $i, $firstOptional);
         }
-        $regexp = self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s'.($isHost ? 'i' : '');
+        $regexp = self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'sD'.($isHost ? 'i' : '');
 
         // enable Utf8 matching if really required
         if ($needsUtf8) {
@@ -232,9 +232,6 @@ class RouteCompiler implements RouteCompilerInterface
 
     /**
      * Determines the longest static prefix possible for a route.
-     *
-     * @param Route $route
-     * @param array $tokens
      *
      * @return string The leading static part of a route's path
      */

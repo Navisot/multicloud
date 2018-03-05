@@ -1117,8 +1117,8 @@ window.Vue = __webpack_require__(36);
 Vue.use(__WEBPACK_IMPORTED_MODULE_2_vue_clipboard___default.a);
 Vue.use(__WEBPACK_IMPORTED_MODULE_1_vue_axios___default.a, __WEBPACK_IMPORTED_MODULE_0_axios___default.a);
 
-Vue.component('example', __webpack_require__(41));
-Vue.component('azure', __webpack_require__(44));
+Vue.component('vms', __webpack_require__(41));
+Vue.component('upload', __webpack_require__(44));
 
 var app = new Vue({
   el: '#app'
@@ -42814,7 +42814,7 @@ var Component = normalizeComponent(
   __vue_scopeId__,
   __vue_module_identifier__
 )
-Component.options.__file = "resources/assets/js/components/Example.vue"
+Component.options.__file = "resources/assets/js/components/ListVMSComponent.vue"
 if (Component.esModule && Object.keys(Component.esModule).some(function (key) {  return key !== "default" && key.substr(0, 2) !== "__"})) {  console.error("named exports are not supported in *.vue files.")}
 
 /* hot reload */
@@ -42824,9 +42824,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-ddbc4dac", Component.options)
+    hotAPI.createRecord("data-v-46b84522", Component.options)
   } else {
-    hotAPI.reload("data-v-ddbc4dac", Component.options)
+    hotAPI.reload("data-v-46b84522", Component.options)
 ' + '  }
   module.hot.dispose(function (data) {
     disposed = true
@@ -42850,118 +42850,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    mounted: function mounted() {
-        console.log('Component mounted.');
-    }
-});
-
-/***/ }),
-/* 43 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _vm._m(0)
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container" }, [
-      _c("div", { staticClass: "row" }, [
-        _c("div", { staticClass: "col-md-8 col-md-offset-2" }, [
-          _c("div", { staticClass: "panel panel-default" }, [
-            _c("div", { staticClass: "panel-heading" }, [
-              _vm._v("Example Component")
-            ]),
-            _vm._v(" "),
-            _c("div", { staticClass: "panel-body" }, [
-              _vm._v(
-                "\n                    I'm an example component!\n                "
-              )
-            ])
-          ])
-        ])
-      ])
-    ])
-  }
-]
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-ddbc4dac", module.exports)
-  }
-}
-
-/***/ }),
-/* 44 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-var normalizeComponent = __webpack_require__(10)
-/* script */
-var __vue_script__ = __webpack_require__(45)
-/* template */
-var __vue_template__ = __webpack_require__(46)
-/* template functional */
-  var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = null
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/assets/js/components/ListAzure.vue"
-if (Component.esModule && Object.keys(Component.esModule).some(function (key) {  return key !== "default" && key.substr(0, 2) !== "__"})) {  console.error("named exports are not supported in *.vue files.")}
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-3f7126d1", Component.options)
-  } else {
-    hotAPI.reload("data-v-3f7126d1", Component.options)
-' + '  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 45 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
@@ -43056,6 +42944,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
             vms: [],
+            count_vms: 0,
             showModal: false,
             new_vm_name: '',
             button: {
@@ -43065,31 +42954,68 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             disableDestroy: false,
             host: [],
             options: [{ label: 'Amazon Web Services', value: 1 }, { label: 'Microsoft Azure', value: 2 }],
-            showSpinner: false
+            showSpinner: false,
+            PendingRequest: false
         };
     },
 
 
     methods: {
-        stopVM: function stopVM(vm_name) {
+        stopVM: function stopVM(vm_id, host) {
 
             var that = this;
 
-            axios.get('/azure/vm/stop/' + vm_name).then(function (response) {
+            if (host === 'AZURE') {
 
-                that.vms = response.data.vms;
-            });
+                axios.get('/azure/vm/stop/' + vm_id).then(function (response) {
+
+                    if (response.status == 200) {
+
+                        axios.get('/vms/user/1').then(function (res) {
+                            that.vms = res.data.vms;
+                            that.count_vms = res.data.vms.length;
+                        });
+                    }
+                });
+            } else {
+
+                axios.post('/aws/vm/action/' + vm_id, { 'action': 'STOP' }).then(function (response) {
+
+                    if (response.status == 200) {
+                        location.reload();
+                    }
+                });
+            }
         },
-        startVM: function startVM(vm_name) {
+        startVM: function startVM(vm_id, host) {
 
             var that = this;
 
-            axios.get('/azure/vm/start/' + vm_name).then(function (response) {
+            if (host === 'AZURE') {
 
-                alert('VM Started!');
+                axios.get('/azure/vm/start/' + vm_id).then(function (response) {
 
-                that.vms = response.data.vms;
-            });
+                    alert('VM Started!');
+
+                    if (response.status == 200) {
+                        axios.get('/vms/user').then(function (res) {
+                            that.vms = res.data.vms;
+                            that.count_vms = res.data.vms.length;
+                        });
+                    }
+                });
+            } else {
+
+                axios.post('/aws/vm/action/' + vm_id, { 'action': 'START' }).then(function (response) {
+
+                    if (response.status == 200) {
+                        axios.get('/vms/user').then(function (res) {
+                            app.vms = res.data.vms;
+                            app.count_vms = res.data.vms.length;
+                        });
+                    }
+                });
+            }
         },
         createNewVM: function createNewVM() {
 
@@ -43109,6 +43035,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             this.button.text = 'Please Wait To Create VM...';
             this.showSpinner = true;
 
+            //                if(this.new_vm_name.length <= 0 || selected_host.length <= 0) {
+            //                    alert('Please Fill In All The Required Fields');
+            //                    this.showSpinner = false;
+            //                    this.button.text = 'Create VM'
+            //                    this.disableCreateVM = false;
+            //                    this.showModal = true;
+            //                    return false;
+            //				}
+
             if (selected_host.length > 1) {
 
                 // Create Multiple VMS
@@ -43123,6 +43058,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     // Create AWS VM
                     axios.post('/aws/create/vm/' + new_name).then(function (response) {
                         that.vms = response.data.vms;
+                        that.count_vms = response.data.vms.length;
                         that.disableCreateVM = false;
                         that.showSpinner = false;
                         that.button.text = 'Create VM';
@@ -43132,6 +43068,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     // Create Azure VM
                     axios.post('/azure/create/vm/' + new_name).then(function (response) {
                         that.vms = response.data.vms;
+                        that.count_vms = response.data.vms.length;
                         that.disableCreateVM = false;
                         that.showSpinner = false;
                         that.button.text = 'Create VM';
@@ -43151,26 +43088,40 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     // Create Azure VM
                     axios.post('/aws/create/vm/' + new_name + '2').then(function (response) {
 
-                        axios.get('/vms/user/1').then(function (response) {
+                        axios.get('/vms/user').then(function (response) {
                             location.reload();
                         });
                     });
                 }
             }
         },
-        deleteAzureVM: function deleteAzureVM(vm_id) {
+        deleteVM: function deleteVM(vm_id, host) {
 
             this.disableDestroy = true;
 
-            var con = confirm('Are you sure?');
-
             var that = this;
 
-            if (con) {
-                axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
-                    that.vms = response.data.vms;
-                    that.disableDestroy = false;
-                });
+            if (host === 'AZURE') {
+
+                var con = confirm('Are you sure?');
+
+                if (con) {
+                    axios.post('/azure/delete/vm/' + vm_id).then(function (response) {
+                        that.vms = response.data.vms;
+                        that.count_vms = response.data.vms.length;
+                        that.disableDestroy = false;
+                    });
+                }
+            } else {
+                var con = confirm('Are you sure?');
+
+                if (con) {
+                    axios.post('/aws/delete/vm/' + vm_id).then(function (response) {
+                        that.vms = response.data.vms;
+                        that.count_vms = response.data.vms.length;
+                        that.disableDestroy = false;
+                    });
+                }
             }
         }
     },
@@ -43179,14 +43130,18 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
         var that = this;
 
-        axios.get('/vms/user/1').then(function (response) {
-            that.vms = response.data;
+        that.PendingRequest = true;
+
+        axios.get('/vms/user').then(function (response) {
+            that.vms = response.data.vms;
+            that.count_vms = response.data.vms.length;
+            that.PendingRequest = false;
         });
     }
 });
 
 /***/ }),
-/* 46 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -43201,123 +43156,173 @@ var render = function() {
         _vm._v("Virtual Machines")
       ]),
       _vm._v(" "),
-      _c("table", { staticClass: "table vm-table" }, [
-        _vm._m(0),
-        _vm._v(" "),
-        _c(
-          "tbody",
-          _vm._l(_vm.vms, function(vm) {
-            return _c("tr", [
-              _c("td", [
-                _c("span", { staticClass: "vm_name" }, [_vm._v(_vm._s(vm.vm))]),
+      _c(
+        "table",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.count_vms > 0,
+              expression: "count_vms > 0"
+            }
+          ],
+          staticClass: "table vm-table"
+        },
+        [
+          _vm._m(0),
+          _vm._v(" "),
+          _c(
+            "tbody",
+            _vm._l(_vm.vms, function(vm) {
+              return _c("tr", [
+                _c("td", [
+                  _c("span", { staticClass: "vm_name" }, [
+                    _vm._v(_vm._s(vm.vm))
+                  ]),
+                  _vm._v(" "),
+                  vm.status == "up"
+                    ? _c("span", { staticClass: "tag is-success" }, [
+                        _vm._v("Running")
+                      ])
+                    : _c("span", { staticClass: "tag is-dark" }, [
+                        _vm._v(" Stopped ")
+                      ]),
+                  _vm._v(" "),
+                  _c("br"),
+                  _vm._v(" "),
+                  _c("span", { staticClass: "vm_info" }, [
+                    _c("strong", [_vm._v(_vm._s(vm.host))]),
+                    _vm._v(
+                      " / " + _vm._s(vm.vm_size) + " / " + _vm._s(vm.location)
+                    )
+                  ])
+                ]),
                 _vm._v(" "),
-                vm.status == "up"
-                  ? _c("span", { staticClass: "tag is-success" }, [
-                      _vm._v("Running")
-                    ])
-                  : _c("span", { staticClass: "tag is-dark" }, [
-                      _vm._v(" Stopped ")
-                    ]),
+                _c("td", { staticClass: "smaller-fonts" }, [
+                  _vm._v(_vm._s(vm.ip_address))
+                ]),
                 _vm._v(" "),
-                _c("br"),
+                _c(
+                  "td",
+                  {
+                    directives: [
+                      {
+                        name: "show",
+                        rawName: "v-show",
+                        value: vm.status == "up",
+                        expression: " vm.status == 'up' "
+                      }
+                    ],
+                    staticClass: "smaller-fonts"
+                  },
+                  [
+                    _c(
+                      "button",
+                      {
+                        staticClass: "button is-info is-outlined",
+                        staticStyle: { "font-size": "14px" },
+                        attrs: { href: "#" },
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.stopVM(vm.id, vm.host)
+                          }
+                        }
+                      },
+                      [_vm._v("Stop VM")]
+                    )
+                  ]
+                ),
                 _vm._v(" "),
-                _c("span", { staticClass: "vm_info" }, [
-                  _c("strong", [_vm._v(_vm._s(vm.host))]),
-                  _vm._v(
-                    " / " + _vm._s(vm.vm_size) + " / " + _vm._s(vm.location)
+                _c(
+                  "td",
+                  {
+                    directives: [
+                      {
+                        name: "show",
+                        rawName: "v-show",
+                        value: vm.status == "down",
+                        expression: " vm.status == 'down' "
+                      }
+                    ],
+                    staticClass: "smaller-fonts"
+                  },
+                  [
+                    _c(
+                      "button",
+                      {
+                        staticClass: "button is-info is-outlined",
+                        staticStyle: { "font-size": "14px" },
+                        attrs: { href: "#" },
+                        on: {
+                          click: function($event) {
+                            $event.preventDefault()
+                            _vm.startVM(vm.id, vm.host)
+                          }
+                        }
+                      },
+                      [_vm._v("Start VM")]
+                    )
+                  ]
+                ),
+                _vm._v(" "),
+                _c("td", [
+                  _c(
+                    "button",
+                    {
+                      staticClass: "button is-danger is-outlined",
+                      staticStyle: { "font-size": "14px" },
+                      attrs: { disabled: _vm.disableDestroy },
+                      on: {
+                        click: function($event) {
+                          $event.preventDefault()
+                          _vm.deleteVM(vm.id, vm.host)
+                        }
+                      }
+                    },
+                    [_vm._v("Destroy")]
                   )
                 ])
-              ]),
-              _vm._v(" "),
-              _c("td", { staticClass: "smaller-fonts" }, [
-                _vm._v(_vm._s(vm.ip_address))
-              ]),
-              _vm._v(" "),
-              _c(
-                "td",
-                {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: vm.status == "up",
-                      expression: " vm.status == 'up' "
-                    }
-                  ],
-                  staticClass: "smaller-fonts"
-                },
-                [
-                  _c(
-                    "button",
-                    {
-                      staticClass: "button is-info is-outlined",
-                      staticStyle: { "font-size": "14px" },
-                      attrs: { href: "#" },
-                      on: {
-                        click: function($event) {
-                          $event.preventDefault()
-                          _vm.stopVM(vm.id)
-                        }
-                      }
-                    },
-                    [_vm._v("Stop VM")]
-                  )
-                ]
-              ),
-              _vm._v(" "),
-              _c(
-                "td",
-                {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: vm.status == "down",
-                      expression: " vm.status == 'down' "
-                    }
-                  ],
-                  staticClass: "smaller-fonts"
-                },
-                [
-                  _c(
-                    "button",
-                    {
-                      staticClass: "button is-info is-outlined",
-                      staticStyle: { "font-size": "14px" },
-                      attrs: { href: "#" },
-                      on: {
-                        click: function($event) {
-                          $event.preventDefault()
-                          _vm.startVM(vm.id)
-                        }
-                      }
-                    },
-                    [_vm._v("Start VM")]
-                  )
-                ]
-              ),
-              _vm._v(" "),
-              _c("td", [
-                _c(
-                  "button",
-                  {
-                    staticClass: "button is-danger is-outlined",
-                    staticStyle: { "font-size": "14px" },
-                    attrs: { disabled: _vm.disableDestroy },
-                    on: {
-                      click: function($event) {
-                        $event.preventDefault()
-                        _vm.deleteAzureVM(vm.id)
-                      }
-                    }
-                  },
-                  [_vm._v("Destroy")]
-                )
               ])
-            ])
-          })
-        )
-      ]),
+            })
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.count_vms <= 0 && !_vm.PendingRequest,
+              expression: "count_vms <= 0 && !PendingRequest"
+            }
+          ]
+        },
+        [
+          _c("h2", { staticClass: "has-text-centered" }, [
+            _vm._v("VM list is empty.")
+          ])
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          directives: [
+            {
+              name: "show",
+              rawName: "v-show",
+              value: _vm.PendingRequest,
+              expression: "PendingRequest"
+            }
+          ]
+        },
+        [_vm._m(1)]
+      ),
       _vm._v(" "),
       _c("br"),
       _vm._v(" "),
@@ -43381,7 +43386,7 @@ var render = function() {
           _c("div", { staticClass: "modal-card" }, [
             _c("header", { staticClass: "modal-card-head" }, [
               _c("p", { staticClass: "modal-card-title" }, [
-                _vm._v("Create New Virtual Machine")
+                _vm._v("Create New Virtual Machine (* required)")
               ]),
               _vm._v(" "),
               _c("button", {
@@ -43398,14 +43403,7 @@ var render = function() {
             _vm._v(" "),
             _c("section", { staticClass: "modal-card-body" }, [
               _c("div", { staticClass: "field" }, [
-                _c(
-                  "label",
-                  {
-                    staticClass: "label is-small",
-                    staticStyle: { "text-align": "left" }
-                  },
-                  [_vm._v("Host:")]
-                ),
+                _vm._m(2),
                 _vm._v(" "),
                 _c("div", { staticClass: "control" }, [
                   _c(
@@ -43465,14 +43463,7 @@ var render = function() {
               ]),
               _vm._v(" "),
               _c("div", { staticClass: "field" }, [
-                _c(
-                  "label",
-                  {
-                    staticClass: "label is-small",
-                    staticStyle: { "text-align": "left" }
-                  },
-                  [_vm._v("VM Name:")]
-                ),
+                _vm._m(3),
                 _vm._v(" "),
                 _c("div", { staticClass: "control" }, [
                   _c("input", {
@@ -43551,6 +43542,35 @@ var staticRenderFns = [
         _c("th")
       ])
     ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("p", { staticClass: "has-text-centered" }, [
+      _c("i", { staticClass: "fas fa-spinner" }),
+      _vm._v(" Loading...")
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "label",
+      { staticClass: "label is-small", staticStyle: { "text-align": "left" } },
+      [_vm._v("Host: "), _c("sup", [_vm._v("*")])]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "label",
+      { staticClass: "label is-small", staticStyle: { "text-align": "left" } },
+      [_vm._v("VM Name: "), _c("sup", [_vm._v("*")])]
+    )
   }
 ]
 render._withStripped = true
@@ -43558,7 +43578,277 @@ module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-3f7126d1", module.exports)
+    require("vue-hot-reload-api")      .rerender("data-v-46b84522", module.exports)
+  }
+}
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+var normalizeComponent = __webpack_require__(10)
+/* script */
+var __vue_script__ = __webpack_require__(45)
+/* template */
+var __vue_template__ = __webpack_require__(46)
+/* template functional */
+  var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = null
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/assets/js/components/UploadComponent.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {  return key !== "default" && key.substr(0, 2) !== "__"})) {  console.error("named exports are not supported in *.vue files.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-26dce6bc", Component.options)
+  } else {
+    hotAPI.reload("data-v-26dce6bc", Component.options)
+' + '  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 45 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    data: function data() {
+        return {
+            application_code: '',
+            application_name: ''
+        };
+    },
+
+
+    methods: {
+        uploadApplicationCode: function uploadApplicationCode() {
+
+            if (this.application_name.length <= 0 || this.application_code.length <= 0) {
+                alert('Please Fill In All The Required Fields');
+                return false;
+            }
+
+            axios.post('/deploy/vm', { 'app_name': this.application_name, 'app_code': this.application_code }).then(function (response) {
+                alert('Your Code Uploaded!');
+            });
+        },
+        fileChanged: function fileChanged(e) {
+            var _this = this;
+
+            var fileReader = new FileReader();
+
+            fileReader.readAsDataURL(e.target.files[0]);
+
+            fileReader.onload = function (e) {
+                _this.application_code = e.target.result;
+            };
+        }
+    },
+
+    mounted: function mounted() {
+        console.log('Mounted');
+    }
+});
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c("div", [
+    _c("br"),
+    _vm._v(" "),
+    _c("div", { staticClass: "box" }, [
+      _c("h4", { staticClass: "title has-text-centered" }, [
+        _vm._v("Deploy Your Application (* required)")
+      ]),
+      _vm._v(" "),
+      _c(
+        "form",
+        {
+          attrs: { method: "POST", enctype: "multipart/form-data" },
+          on: {
+            submit: function($event) {
+              $event.preventDefault()
+              _vm.uploadApplicationCode()
+            }
+          }
+        },
+        [
+          _c("div", { staticClass: "field" }, [
+            _vm._m(0),
+            _vm._v(" "),
+            _c("div", { staticClass: "control" }, [
+              _c("input", {
+                directives: [
+                  {
+                    name: "model",
+                    rawName: "v-model",
+                    value: _vm.application_name,
+                    expression: "application_name"
+                  }
+                ],
+                staticClass: "input",
+                attrs: { type: "text", placeholder: "Required" },
+                domProps: { value: _vm.application_name },
+                on: {
+                  input: function($event) {
+                    if ($event.target.composing) {
+                      return
+                    }
+                    _vm.application_name = $event.target.value
+                  }
+                }
+              })
+            ])
+          ]),
+          _vm._v(" "),
+          _vm._m(1),
+          _vm._v(" "),
+          _c("div", { staticClass: "file is-info" }, [
+            _c("label", { staticClass: "file-label" }, [
+              _c("input", {
+                staticClass: "file-input",
+                attrs: { type: "file" },
+                on: { change: _vm.fileChanged }
+              }),
+              _vm._v(" "),
+              _vm._m(2)
+            ])
+          ]),
+          _vm._v(" "),
+          _c("br"),
+          _vm._v(" "),
+          _vm._m(3)
+        ]
+      )
+    ])
+  ])
+}
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("label", { staticClass: "is-pulled-left" }, [
+      _vm._v("Application Name: "),
+      _c("sup", [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("label", [
+      _vm._v("Zip Dockerized Code: "),
+      _c("sup", [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("span", { staticClass: "file-cta" }, [
+      _c("span", { staticClass: "file-icon" }, [
+        _c("i", { staticClass: "fas fa-upload" })
+      ]),
+      _vm._v(" "),
+      _c("span", { staticClass: "file-label" }, [
+        _vm._v(
+          "\n                    Upload your code in Zip File…\n                  "
+        )
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "field" }, [
+      _c("div", { staticClass: "control" }, [
+        _c("input", {
+          staticClass: "button is-primary",
+          attrs: { type: "submit", value: "Upload Code" }
+        })
+      ])
+    ])
+  }
+]
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-26dce6bc", module.exports)
   }
 }
 

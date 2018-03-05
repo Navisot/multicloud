@@ -9,7 +9,9 @@ use App\Http\Libraries\CustomHelper;
 
 class ActionController extends RestController
 {
-    public function getVirtualMachines($user_id) {
+    public function getVirtualMachines() {
+
+        $user_id = 1;
 
         $azure_vms = Azurevm::where('user_id', $user_id)->get()->toArray();
 
@@ -52,7 +54,7 @@ class ActionController extends RestController
         $all_vms = array_merge($map_azure, $map_aws);
 
 
-        return response()->json($all_vms);
+        return response()->json(['vms' => $all_vms], 200);
 
     }
 }
