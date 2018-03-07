@@ -60,8 +60,18 @@ class ActionController extends RestController
     }
 
     public function testMethod() {
-        $user = User::find(1);
 
-        dd($user->application);
+        $instances = [];
+
+        $vms = [4,5];
+
+        foreach ($vms as $vm){
+            $vm = AWSvm::find($vm);
+            $temp_array = array('Key' => 'Name', 'Type'=>'KEY_AND_VALUE', 'Value' => $vm->vm);
+            array_push($instances, $temp_array);
+        }
+
+        dd($instances);
+
     }
 }

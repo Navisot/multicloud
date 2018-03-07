@@ -38,7 +38,7 @@ class CustomHelper {
 
         $aws_file = '/users/' . $filename;
 
-        return array('aws_file' => $aws_file, 'local_path' => $path, 'correct_file' => $correct_file);
+        return array('aws_file' => $aws_file, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
 
     }
 

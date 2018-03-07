@@ -3,7 +3,7 @@
 		<br>
 
 	<div class="box">
-		<h1 class="title has-text-centered">Virtual Machines</h1>
+		<h4 class="has-text-centered" style="font-size:24px;">Virtual Machines</h4><hr>
 			<table class="table vm-table" v-show="count_vms > 0">
 				<thead>
 				<tr>

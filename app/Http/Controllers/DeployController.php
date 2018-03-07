@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\AWSvm;
 use Illuminate\Http\Request;
 use App\User;
 use App\Http\Libraries\CustomHelper;
+use App\AwsApplication;
 
 class DeployController extends RestController
 {
@@ -21,6 +23,7 @@ class DeployController extends RestController
     public function deployCode(Request $request) {
 
         $application_code = $request->app_code;
+        $selected_vms = $request->selected_vms;
 
         $code = CustomHelper::saveCodeLocal($application_code);
 
@@ -30,21 +33,22 @@ class DeployController extends RestController
 
         CustomHelper::uploadCodeToS3($code['aws_file'], $code['local_path']);
 
-        $deployment = $this->createAWSDeployment();
+        $deployment = $this->createAWSDeployment($code['zip_file'], $selected_vms);
 
         return response()->json(['deployment' => $deployment], 200);
 
     }
 
-    public function createAWSDeployment() {
+    public function createAWSDeployment($zip_file, $vms) {
 
         $user = User::find(1);
 
         if( !$user->application ) {
 
             $this->saveNewApplication($user->id);
+            //todo groupname check somehow
             $this->createNewAWSApplication();
-            $this->createNewAWSDeploymentGroup();
+
 
         } else {
 
@@ -53,7 +57,8 @@ class DeployController extends RestController
         }
 
         // Publish New Deployment In AWS
-        $result = $this->createNewAWSDeployment();
+        $this->createNewAWSDeploymentGroup($vms);
+        $result = $this->createNewAWSDeployment($zip_file, $vms);
 
         return $result;
 
@@ -80,80 +85,125 @@ class DeployController extends RestController
 
     }
 
-    public function createNewAWSDeploymentGroup() {
+    public function createNewAWSDeploymentGroup($vms) {
 
+            $instances = [];
 
-        $this->ec2->createDeploymentGroup
-        ([
-            'alarmConfiguration' => [
-                'enabled' => false,
-            ],
-            'applicationName' => $this->application_name,
-            'autoRollbackConfiguration' => [
-                'enabled' => false,
-            ],
-            'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
-            'deploymentGroupName' => $this->deployment_group_name,
-            'deploymentStyle' => [
-                'deploymentOption' => 'WITHOUT_TRAFFIC_CONTROL',
-                'deploymentType' => 'IN_PLACE',
-            ],
-            'ec2TagFilters' => [
-                [
-                    'Key' => 'Name',
-                    'Type' => 'KEY_AND_VALUE',
-                    'Value' => 'demo',
-                ],
+            foreach ($vms as $vm){
+                $vm = AWSvm::find($vm)->vm;
+                $temp_array = array('Key' => 'Name', 'Type'=>'KEY_AND_VALUE', 'Value' => $vm);
+                array_push($instances, $temp_array);
+            }
 
-            ],
-            'alarmConfiguration' => [
-                'alarms' => [
-                    [
-                        'name' => 'no',
-                    ]
-                ],
-                'enabled' => false,
-                'ignorePollAlarmFailure' => false,
-            ],
-            'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole',
+            $updated = $this->checkIfGroupExistsAndUpdateGroup($this->deployment_group_name, $instances);
 
-        ]);
+            if (!$updated) {
+                $this->ec2->createDeploymentGroup
+                ([
+                    'alarmConfiguration' => [
+                        'enabled' => false,
+                    ],
+                    'applicationName' => $this->application_name,
+                    'autoRollbackConfiguration' => [
+                        'enabled' => false,
+                    ],
+                    'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+                    'deploymentGroupName' => $this->deployment_group_name,
+                    'deploymentStyle' => [
+                        'deploymentOption' => 'WITHOUT_TRAFFIC_CONTROL',
+                        'deploymentType' => 'IN_PLACE',
+                    ],
+                    'ec2TagFilters' => $instances,
+                    'alarmConfiguration' => [
+                        'alarms' => [
+                            [
+                                'name' => 'no',
+                            ]
+                        ],
+                        'enabled' => false,
+                        'ignorePollAlarmFailure' => false,
+                    ],
+                    'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole',
+
+                ]);
+            }
     }
 
-    public function createNewAWSDeployment() {
+    public function checkIfGroupExistsAndUpdateGroup($group_name, $instances) {
 
-        $this->ec2->createDeployment([
-            'applicationName' => $this->application_name,
-            'autoRollbackConfiguration' => [
-                'enabled' => false,
-            ],
-            'deploymentGroupName' => $this->deployment_group_name,
-            'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
-            'fileExistsBehavior' => 'OVERWRITE',
-            'revision' => [
+        $updated = false;
 
-                'revisionType' => 'S3',
-                's3Location' => [
-                    'bucket' => 'navisotuserdata',
-                    'bundleType' => 'zip',
-                    'key' => 'users/x9B3ZH6E87Mo.zip'
-                ]
-            ],
-            'targetInstances' => [
-                'ec2TagSet' => [
-                    'ec2TagSetList' => [
-                        [
-                            [
-                                'Key' => 'Name',
-                                'Type' => 'KEY_AND_VALUE',
-                                'Value' => 'demo',
-                            ],
+        if ( !is_null( AwsApplication::where('deployment_group',$group_name)->first() ) ) {
 
+                    $this->ec2->updateDeploymentGroup([
+                        'alarmConfiguration' => [
+                            'enabled' => false,
                         ],
-                    ],
+                        'applicationName' => $this->application_name,
+                        'autoRollbackConfiguration' => [
+                            'enabled' => false,
+                        ],
+                        'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+                        'currentDeploymentGroupName' => $this->deployment_group_name,
+                        'deploymentStyle' => [
+                            'deploymentOption' => 'WITHOUT_TRAFFIC_CONTROL',
+                            'deploymentType' => 'IN_PLACE',
+                        ],
+                        'ec2TagFilters' => $instances,
+                        'alarmConfiguration' => [
+                            'alarms' => [
+                                [
+                                    'name' => 'no',
+                                ]
+                            ],
+                            'enabled' => false,
+                            'ignorePollAlarmFailure' => false,
+                        ],
+                        'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole',
+
+                    ]);
+
+                    $updated = true;
+
+        }
+
+        return $updated;
+
+    }
+
+    public function createNewAWSDeployment($zip_file, $vms)
+    {
+
+        $instances = [];
+
+        foreach ($vms as $vm){
+            $vm = AWSvm::find($vm)->vm;
+            $temp_array = array('Key' => 'Name', 'Type'=>'KEY_AND_VALUE', 'Value' => $vm);
+            array_push($instances, $temp_array);
+        }
+
+            $this->ec2->createDeployment([
+                'applicationName' => $this->application_name,
+                'autoRollbackConfiguration' => [
+                    'enabled' => false,
                 ],
-            ]
-        ]);
+                'deploymentGroupName' => $this->deployment_group_name,
+                'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+                'fileExistsBehavior' => 'OVERWRITE',
+                'revision' => [
+
+                    'revisionType' => 'S3',
+                    's3Location' => [
+                        'bucket' => 'navisotuserdata',
+                        'bundleType' => 'zip',
+                        'key' => 'users/'.$zip_file
+                    ]
+                ],
+                'targetInstances' => [
+                    'tagFilters' => $instances
+                ]
+            ]);
+
 
     }
 }

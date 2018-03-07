@@ -43152,9 +43152,15 @@ var render = function() {
     _c("br"),
     _vm._v(" "),
     _c("div", { staticClass: "box" }, [
-      _c("h1", { staticClass: "title has-text-centered" }, [
-        _vm._v("Virtual Machines")
-      ]),
+      _c(
+        "h4",
+        {
+          staticClass: "has-text-centered",
+          staticStyle: { "font-size": "24px" }
+        },
+        [_vm._v("Virtual Machines")]
+      ),
+      _c("hr"),
       _vm._v(" "),
       _c(
         "table",
@@ -43671,11 +43677,25 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
         return {
-            application_code: ''
+            application_code: '',
+            vms: [],
+            selected_vms: []
         };
     },
 
@@ -43683,12 +43703,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     methods: {
         uploadApplicationCode: function uploadApplicationCode() {
 
-            if (this.application_code.length <= 0) {
+            if (this.application_code.length <= 0 || this.selected_vms.length <= 0) {
                 alert('Please Fill In All The Required Fields');
                 return false;
             }
 
-            axios.post('/deploy/vm', { 'app_code': this.application_code }).then(function (response) {
+            axios.post('/deploy/vm', { 'app_code': this.application_code, 'selected_vms': this.selected_vms }).then(function (response) {
                 alert('Your Code Uploaded!');
             });
         },
@@ -43706,7 +43726,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     },
 
     mounted: function mounted() {
-        console.log('Mounted');
+        var that = this;
+        axios.get('vms/user').then(function (response) {
+            that.vms = response.data.vms;
+        });
     }
 });
 
@@ -43722,9 +43745,15 @@ var render = function() {
     _c("br"),
     _vm._v(" "),
     _c("div", { staticClass: "box" }, [
-      _c("h4", { staticClass: "title has-text-centered" }, [
-        _vm._v("Deploy Your Application (* required)")
-      ]),
+      _c(
+        "h4",
+        {
+          staticClass: "has-text-centered",
+          staticStyle: { "font-size": "24px" }
+        },
+        [_vm._v("Deploy Your Application")]
+      ),
+      _c("hr"),
       _vm._v(" "),
       _c(
         "form",
@@ -43738,7 +43767,77 @@ var render = function() {
           }
         },
         [
-          _vm._m(0),
+          _c("div", { staticClass: "field" }, [
+            _c(
+              "label",
+              {
+                staticClass: "label is-small",
+                staticStyle: { "text-align": "left", "font-size": "15px" }
+              },
+              [_vm._v("Choose VM:")]
+            ),
+            _vm._v(" "),
+            _c("div", { staticClass: "control" }, [
+              _c("div", { staticClass: "select is-fullwidth is-multiple" }, [
+                _c(
+                  "select",
+                  {
+                    directives: [
+                      {
+                        name: "model",
+                        rawName: "v-model",
+                        value: _vm.selected_vms,
+                        expression: "selected_vms"
+                      }
+                    ],
+                    attrs: { multiple: "", size: "3" },
+                    on: {
+                      change: function($event) {
+                        var $$selectedVal = Array.prototype.filter
+                          .call($event.target.options, function(o) {
+                            return o.selected
+                          })
+                          .map(function(o) {
+                            var val = "_value" in o ? o._value : o.value
+                            return val
+                          })
+                        _vm.selected_vms = $event.target.multiple
+                          ? $$selectedVal
+                          : $$selectedVal[0]
+                      }
+                    }
+                  },
+                  [
+                    _c(
+                      "option",
+                      { attrs: { disabled: "", selected: "", value: "" } },
+                      [
+                        _vm._v(
+                          "-- Choose At Least One VM To Deploy Your App --"
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _vm._l(_vm.vms, function(vm) {
+                      return _c("option", { domProps: { value: vm.id } }, [
+                        _vm._v(_vm._s(vm.vm) + " (" + _vm._s(vm.vm_size) + ")")
+                      ])
+                    })
+                  ],
+                  2
+                )
+              ])
+            ])
+          ]),
+          _vm._v(" "),
+          _c(
+            "label",
+            {
+              staticClass: "label is-small",
+              staticStyle: { "text-align": "left", "font-size": "15px" }
+            },
+            [_vm._v("Zip File:")]
+          ),
           _vm._v(" "),
           _c("div", { staticClass: "file is-info" }, [
             _c("label", { staticClass: "file-label" }, [
@@ -43748,13 +43847,13 @@ var render = function() {
                 on: { change: _vm.fileChanged }
               }),
               _vm._v(" "),
-              _vm._m(1)
+              _vm._m(0)
             ])
           ]),
           _vm._v(" "),
           _c("br"),
           _vm._v(" "),
-          _vm._m(2)
+          _vm._m(1)
         ]
       )
     ])
@@ -43765,24 +43864,13 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("label", [
-      _vm._v("Zip Dockerized Code: "),
-      _c("sup", [_vm._v("*")])
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
     return _c("span", { staticClass: "file-cta" }, [
       _c("span", { staticClass: "file-icon" }, [
         _c("i", { staticClass: "fas fa-upload" })
       ]),
       _vm._v(" "),
       _c("span", { staticClass: "file-label" }, [
-        _vm._v(
-          "\n                    Upload your code in Zip File…\n                  "
-        )
+        _vm._v("\n                    Upload your code..\n                  ")
       ])
     ])
   },
