@@ -42824,9 +42824,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-46b84522", Component.options)
+    hotAPI.createRecord("data-v-78c4ed22", Component.options)
   } else {
-    hotAPI.reload("data-v-46b84522", Component.options)
+    hotAPI.reload("data-v-78c4ed22", Component.options)
 ' + '  }
   module.hot.dispose(function (data) {
     disposed = true
@@ -43578,7 +43578,7 @@ module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-46b84522", module.exports)
+    require("vue-hot-reload-api")      .rerender("data-v-78c4ed22", module.exports)
   }
 }
 
@@ -43618,9 +43618,9 @@ if (false) {(function () {
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
-    hotAPI.createRecord("data-v-26dce6bc", Component.options)
+    hotAPI.createRecord("data-v-38048a88", Component.options)
   } else {
-    hotAPI.reload("data-v-26dce6bc", Component.options)
+    hotAPI.reload("data-v-38048a88", Component.options)
 ' + '  }
   module.hot.dispose(function (data) {
     disposed = true
@@ -43671,17 +43671,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     data: function data() {
         return {
-            application_code: '',
-            application_name: ''
+            application_code: ''
         };
     },
 
@@ -43689,12 +43683,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     methods: {
         uploadApplicationCode: function uploadApplicationCode() {
 
-            if (this.application_name.length <= 0 || this.application_code.length <= 0) {
+            if (this.application_code.length <= 0) {
                 alert('Please Fill In All The Required Fields');
                 return false;
             }
 
-            axios.post('/deploy/vm', { 'app_name': this.application_name, 'app_code': this.application_code }).then(function (response) {
+            axios.post('/deploy/vm', { 'app_code': this.application_code }).then(function (response) {
                 alert('Your Code Uploaded!');
             });
         },
@@ -43744,35 +43738,7 @@ var render = function() {
           }
         },
         [
-          _c("div", { staticClass: "field" }, [
-            _vm._m(0),
-            _vm._v(" "),
-            _c("div", { staticClass: "control" }, [
-              _c("input", {
-                directives: [
-                  {
-                    name: "model",
-                    rawName: "v-model",
-                    value: _vm.application_name,
-                    expression: "application_name"
-                  }
-                ],
-                staticClass: "input",
-                attrs: { type: "text", placeholder: "Required" },
-                domProps: { value: _vm.application_name },
-                on: {
-                  input: function($event) {
-                    if ($event.target.composing) {
-                      return
-                    }
-                    _vm.application_name = $event.target.value
-                  }
-                }
-              })
-            ])
-          ]),
-          _vm._v(" "),
-          _vm._m(1),
+          _vm._m(0),
           _vm._v(" "),
           _c("div", { staticClass: "file is-info" }, [
             _c("label", { staticClass: "file-label" }, [
@@ -43782,28 +43748,19 @@ var render = function() {
                 on: { change: _vm.fileChanged }
               }),
               _vm._v(" "),
-              _vm._m(2)
+              _vm._m(1)
             ])
           ]),
           _vm._v(" "),
           _c("br"),
           _vm._v(" "),
-          _vm._m(3)
+          _vm._m(2)
         ]
       )
     ])
   ])
 }
 var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("label", { staticClass: "is-pulled-left" }, [
-      _vm._v("Application Name: "),
-      _c("sup", [_vm._v("*")])
-    ])
-  },
   function() {
     var _vm = this
     var _h = _vm.$createElement
@@ -43848,7 +43805,7 @@ module.exports = { render: render, staticRenderFns: staticRenderFns }
 if (false) {
   module.hot.accept()
   if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-26dce6bc", module.exports)
+    require("vue-hot-reload-api")      .rerender("data-v-38048a88", module.exports)
   }
 }
 

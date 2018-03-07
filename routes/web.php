@@ -1,7 +1,5 @@
 <?php
 
-use App\User;
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -16,7 +14,7 @@ Route::get('/deploy', function(){
    return view('upload');
 });
 
-Route::post('/deploy/vm', ['uses' => 'RestController@deployCode', 'as' => 'deploy.code']);
+Route::post('/deploy/vm', ['uses' => 'DeployController@deployCode', 'as' => 'deploy.code']);
 
 // Azure Actions
 
