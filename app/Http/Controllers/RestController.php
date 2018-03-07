@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\AwsApplication;
 use Aws\CodeDeploy\CodeDeployClient;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
@@ -741,28 +742,47 @@ class RestController extends Controller
 
         $user = User::find($user_id);
 
-        $ec2->createApplication([
-            'applicationName' => 'user1application', // REQUIRED
-            'computePlatform' => 'Server',
-        ]);
+        if(is_null($user->application)){
 
+            $application_name = 'user'.$user_id.'application';
+            $deployment_group_name = 'user'.$user_id.'application_dg';
 
-        $ec2->createDeploymentGroup
-        ([
-            'alarmConfiguration' => [
-                'enabled' =>  false,
-            ],
-            'applicationName' => 'user1application', // REQUIRED
-            'autoRollbackConfiguration' => [
-                'enabled' => false,
-            ],
-            'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
-            'deploymentGroupName' => 'user1application_dg', // REQUIRED
-            'deploymentStyle' => [
+            $application = new AwsApplication();
+            $application->application_name = $application_name;
+            $application->deployment_group = $deployment_group_name;
+            $application->user_id = $user_id;
+            $application->save();
+
+        } else {
+            $application_name = $user->application->application_name;
+            $deployment_group_name = $user->application->deployment_group;
+        }
+
+        if(is_null($user->application)) {
+
+            // Create New Application
+            $ec2->createApplication([
+                'applicationName' => $application_name, // REQUIRED
+                'computePlatform' => 'Server',
+            ]);
+
+            // Create New Deployment Group
+            $ec2->createDeploymentGroup
+            ([
+                'alarmConfiguration' => [
+                    'enabled' => false,
+                ],
+                'applicationName' => $application_name, // REQUIRED
+                'autoRollbackConfiguration' => [
+                    'enabled' => false,
+                ],
+                'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
+                'deploymentGroupName' => $deployment_group_name, // REQUIRED
+                'deploymentStyle' => [
                     'deploymentOption' => 'WITHOUT_TRAFFIC_CONTROL',
                     'deploymentType' => 'IN_PLACE',
-            ],
-            'ec2TagFilters' => [
+                ],
+                'ec2TagFilters' => [
                     [
                         'Key' => 'Name',
                         'Type' => 'KEY_AND_VALUE',
@@ -770,26 +790,27 @@ class RestController extends Controller
                     ],
 
                 ],
-            'alarmConfiguration' => [
-                'alarms' => [
-                    [
-                        'name' => 'no',
+                'alarmConfiguration' => [
+                    'alarms' => [
+                        [
+                            'name' => 'no',
+                        ],
+                        // ...
                     ],
-                    // ...
+                    'enabled' => false,
+                    'ignorePollAlarmFailure' => false,
                 ],
-                'enabled' => false,
-                'ignorePollAlarmFailure' => false,
-            ],
-            'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole', // REQUIRED
+                'serviceRoleArn' => 'arn:aws:iam::477898490023:role/CodeDeployRole', // REQUIRED
 
-        ]);
+            ]);
+        }
 
         $result = $ec2->createDeployment([
-            'applicationName' => 'user1application',
+            'applicationName' => $application_name,
             'autoRollbackConfiguration' => [
                 'enabled' => false,
             ],
-            'deploymentGroupName' => 'user1application_dg',
+            'deploymentGroupName' => $deployment_group_name,
             'deploymentConfigName' => 'CodeDeployDefault.AllAtOnce',
             'fileExistsBehavior' => 'OVERWRITE',
             'revision' => [
