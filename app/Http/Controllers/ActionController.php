@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Azurevm;
 use App\AWSvm;
+use App\User;
 use App\Http\Libraries\CustomHelper;
 
 class ActionController extends RestController
@@ -56,5 +57,11 @@ class ActionController extends RestController
 
         return response()->json(['vms' => $all_vms], 200);
 
+    }
+
+    public function testMethod() {
+        $user = User::find(1);
+
+        dd($user->application);
     }
 }

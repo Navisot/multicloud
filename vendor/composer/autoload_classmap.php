@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\AWSvm' => $baseDir . '/app/AWSvm.php',
+    'App\\AwsApplication' => $baseDir . '/app/AwsApplication.php',
     'App\\Azurevm' => $baseDir . '/app/Azurevm.php',
     'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Exceptions\\Handler' => $baseDir . '/app/Exceptions/Handler.php',
@@ -460,6 +461,7 @@ return array(
     'Carbon\\Carbon' => $vendorDir . '/nesbot/carbon/src/Carbon/Carbon.php',
     'Carbon\\CarbonInterval' => $vendorDir . '/nesbot/carbon/src/Carbon/CarbonInterval.php',
     'Carbon\\Exceptions\\InvalidDateException' => $vendorDir . '/nesbot/carbon/src/Carbon/Exceptions/InvalidDateException.php',
+    'CreateAwsapplicationsTable' => $baseDir . '/database/migrations/2018_03_07_120320_create_awsapplications_table.php',
     'CreateAwsvmsTable' => $baseDir . '/database/migrations/2018_02_04_104141_create_awsvms_table.php',
     'CreateAzurevmsTable' => $baseDir . '/database/migrations/2017_11_12_102416_create_azurevms_table.php',
     'CreatePasswordResetsTable' => $baseDir . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',

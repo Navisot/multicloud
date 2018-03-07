@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use Aws\CodeDeploy\CodeDeployClient;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
@@ -570,7 +571,6 @@ class RestController extends Controller
             'SecurityGroups' => array('api-sg'),
             'IamInstanceProfile' => [
                 'Arn' => 'arn:aws:iam::477898490023:instance-profile/EC2CodeDeployRole',
-                //'Name' => 'EC2CodeDeployRole',
             ],
             'TagSpecifications' => [
                 [
@@ -726,15 +726,20 @@ class RestController extends Controller
 
         $s3->put($aws_file, file_get_contents($path), 'public');
 
-        $deployment = $this->createAWSDeployment();
+        //Todo Dynamic User
+        $user_id = 1;
+
+        $deployment = $this->createAWSDeployment($user_id);
 
         return response()->json(['deployment' => $deployment], 200);
 
     }
 
-    public function createAWSDeployment() {
+    public function createAWSDeployment($user_id) {
 
         $ec2 = $this->getAWSCodeDeployClient();
+
+        $user = User::find($user_id);
 
         $ec2->createApplication([
             'applicationName' => 'user1application', // REQUIRED

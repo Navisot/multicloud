@@ -30,4 +30,8 @@ class User extends Authenticatable
     public function tokens() {
         return $this->hasMany('App\UserToken','user_id', 'id');
     }
+
+    public function application(){
+        return $this->hasOne('App\AwsApplication', 'user_id', 'id');
+    }
 }

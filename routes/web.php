@@ -1,6 +1,6 @@
 <?php
 
-
+use App\User;
 
 Route::get('/', function () {
     return view('welcome');
@@ -41,3 +41,8 @@ Route::prefix('aws')->group(function(){
 
 
 Route::get('vms/user', ['uses' => 'ActionController@getVirtualMachines', 'as' => 'get.vms']);
+
+
+// DEMO
+
+Route::get('/demo', ['uses' => 'ActionController@testMethod']);

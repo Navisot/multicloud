@@ -324,6 +324,7 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
 
     public static $classMap = array (
         'App\\AWSvm' => __DIR__ . '/../..' . '/app/AWSvm.php',
+        'App\\AwsApplication' => __DIR__ . '/../..' . '/app/AwsApplication.php',
         'App\\Azurevm' => __DIR__ . '/../..' . '/app/Azurevm.php',
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
@@ -777,6 +778,7 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
         'Carbon\\Carbon' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Carbon.php',
         'Carbon\\CarbonInterval' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/CarbonInterval.php',
         'Carbon\\Exceptions\\InvalidDateException' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Exceptions/InvalidDateException.php',
+        'CreateAwsapplicationsTable' => __DIR__ . '/../..' . '/database/migrations/2018_03_07_120320_create_awsapplications_table.php',
         'CreateAwsvmsTable' => __DIR__ . '/../..' . '/database/migrations/2018_02_04_104141_create_awsvms_table.php',
         'CreateAzurevmsTable' => __DIR__ . '/../..' . '/database/migrations/2017_11_12_102416_create_azurevms_table.php',
         'CreatePasswordResetsTable' => __DIR__ . '/../..' . '/database/migrations/2014_10_12_100000_create_password_resets_table.php',
