@@ -45,29 +45,39 @@ class DeployController extends RestController
 
         if( !$user->application ) {
 
-            $this->saveNewApplication($user->id);
-            //todo groupname check somehow
+            // User DOES NOT Have Available Applications
+
+            // Initialize Variables
+            $this->application_name = 'user'.$user->id.'application';
+            $this->deployment_group_name = 'user'.$user->id.'application_dg';
+
+            // Create Application
             $this->createNewAWSApplication();
 
 
         } else {
 
+            // User Has Available Applications
             $this->application_name = $user->application->application_name;
             $this->deployment_group_name = $user->application->deployment_group;
         }
 
-        // Publish New Deployment In AWS
+        // Create or Update Deployment Group
         $this->createNewAWSDeploymentGroup($vms);
+
+        // Publish New Deployment
         $result = $this->createNewAWSDeployment($zip_file, $vms);
+
+        // First Application? Save to DB.
+        if(!$user->application) {
+            $this->saveNewApplication($user->id);
+        }
 
         return $result;
 
     }
 
     public function saveNewApplication($user_id) {
-
-        $this->application_name = 'user'.$user_id.'application';
-        $this->deployment_group_name = 'user'.$user_id.'application_dg';
 
         $application = new AwsApplication();
         $application->application_name = $this->application_name;
@@ -95,9 +105,10 @@ class DeployController extends RestController
                 array_push($instances, $temp_array);
             }
 
-            $updated = $this->checkIfGroupExistsAndUpdateGroup($this->deployment_group_name, $instances);
+            $exists = $this->checkIfGroupExistsAndUpdateGroup($this->deployment_group_name, $instances);
 
-            if (!$updated) {
+            if (!$exists) {
+                // We don't have any deployment group yet.
                 $this->ec2->createDeploymentGroup
                 ([
                     'alarmConfiguration' => [
@@ -131,9 +142,12 @@ class DeployController extends RestController
 
     public function checkIfGroupExistsAndUpdateGroup($group_name, $instances) {
 
-        $updated = false;
+        $exists = false;
 
         if ( !is_null( AwsApplication::where('deployment_group',$group_name)->first() ) ) {
+
+            // We Have deployment group In DB so...update
+            $exists = true;
 
                     $this->ec2->updateDeploymentGroup([
                         'alarmConfiguration' => [
@@ -163,11 +177,11 @@ class DeployController extends RestController
 
                     ]);
 
-                    $updated = true;
+
 
         }
 
-        return $updated;
+        return $exists;
 
     }
 
