@@ -43,4 +43,4 @@ Route::get('vms/user', ['uses' => 'ActionController@getVirtualMachines', 'as' =>
 
 // DEMO
 
-Route::get('/demo', ['uses' => 'ActionController@testMethod']);
+Route::get('/demo', ['uses' => 'RestController@createBlob']);

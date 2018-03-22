@@ -8,7 +8,13 @@ $baseDir = dirname($vendorDir);
 return array(
     'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
     'Parsedown' => array($vendorDir . '/erusev/parsedown'),
+    'PEAR' => array($vendorDir . '/pear/pear_exception'),
     'Mockery' => array($vendorDir . '/mockery/mockery/library'),
+    'Mail_mimeDecode' => array($vendorDir . '/pear/mail_mime-decode'),
+    'Mail' => array($vendorDir . '/pear/mail_mime'),
     'JakubOnderka\\PhpConsoleHighlighter' => array($vendorDir . '/jakub-onderka/php-console-highlighter/src'),
     'JakubOnderka\\PhpConsoleColor' => array($vendorDir . '/jakub-onderka/php-console-color/src'),
+    'HTTP_Request2' => array($vendorDir . '/pear/http_request2'),
+    'Console' => array($vendorDir . '/pear/console_getopt'),
+    '' => array($vendorDir . '/pear/pear-core-minimal/src'),
 );

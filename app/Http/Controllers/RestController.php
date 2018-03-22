@@ -13,6 +13,11 @@ use App\Azurevm;
 use App\AWSvm;
 use \Aws\Ec2\Ec2Client;
 use App\Http\Libraries\CustomHelper;
+use WindowsAzure\Common\ServicesBuilder;
+use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
+use MicrosoftAzure\Storage\Blob\Models\PublicAccessType;
+use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
+use MicrosoftAzure\Storage\Common\ServiceException;
 
 
 class RestController extends Controller
@@ -28,12 +33,49 @@ class RestController extends Controller
     protected $azure_resource_group = 'DockerResourceGroup';
     protected $azure_vm_name = 'dockerVM';
     protected $azure_api_version = '2017-03-30';
+    protected $storage_key = 'SYBYeeUJyxdUa70e4Qhdr3cGcW/sYdSYMfrJn1JQEm9ROtYtTTUQzyxCJnHb+sNtdJwYEjdNLMTvAVYrwPDKSw==';
+    protected $storage_name = 'navisotdata';
 
     // AWS
     protected $version = 'latest';
     protected $region = 'eu-central-1';
     protected $aws_access_key = 'AKIAJNJJ75WMLLNOL5PQ';
     protected $aws_secret_key = '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';
+
+    public function createBlob(){
+        $connectionString = "DefaultEndpointsProtocol=https;AccountName=".$this->storage_name.";AccountKey=".$this->storage_key;
+        // Create blob REST proxy.
+        $blobRestProxy = ServicesBuilder::getInstance()->createBlobService($connectionString);
+
+        $file = base_path('application.zip');
+
+        if(is_readable($file)){
+            $content = fopen($file, "r");
+        }else{
+            return "File not found";
+        }
+
+        $blob_name = "deploydata";
+
+        try {
+            $options = new CreateBlobOptions();
+            $options->setBlobContentType("application/zip");
+
+            //Upload blob
+            $blobRestProxy->createBlockBlob("navisotcontainer", $blob_name, $content, $options);
+
+        }
+        catch(ServiceException $e){
+            // Handle exception based on error codes and messages.
+            // Error codes and messages are here:
+            // http://msdn.microsoft.com/library/azure/dd179439.aspx
+            $code = $e->getCode();
+            $error_message = $e->getMessage();
+            echo $code.": ".$error_message."<br />";
+        }
+
+        return "file uploaded";
+    }
 
 
     public function getAzureAccessToken() {
@@ -324,7 +366,7 @@ class RestController extends Controller
                 ],
                 'storageProfile' => [
                     'imageReference' => [
-                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerImage'
+                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerizedImage'
                     ],
                     'osDisk' => [
                         'name' => $vm_os_disk_name,
@@ -564,7 +606,7 @@ class RestController extends Controller
 
         // Launch an instance with the key pair and security group
         $result = $ec2Client->runInstances(array(
-            'ImageId'        => 'ami-2a83ec45',
+            'ImageId'        => 'ami-cf217124',
             'MinCount'       => 1,
             'MaxCount'       => 1,
             'InstanceType'   => 't2.micro',

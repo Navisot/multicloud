@@ -265,7 +265,7 @@ export default {
                     else {
 
                         // Create Azure VM
-                        axios.post('/aws/create/vm/' + new_name +'2').then(function (response) {
+                        axios.post('/azure/create/vm/' + new_name +'2').then(function (response) {
 
                             axios.get('/vms/user').then(function (response) {
                                 location.reload();
