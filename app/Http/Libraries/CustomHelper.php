@@ -36,9 +36,14 @@ class CustomHelper {
 
         file_put_contents($path, $decoded);
 
-        $aws_file = '/users/' . $filename;
+        // Azure
+        $azure_path = public_path() . '/user_data/application.zip';
+        file_put_contents($azure_path, $decoded);
 
-        return array('aws_file' => $aws_file, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
+        $aws_file = '/users/' . $filename;
+        $azure_file = '/users/application.zip';
+
+        return array('aws_file' => $aws_file, 'azure_file' => $azure_file, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
 
     }
 

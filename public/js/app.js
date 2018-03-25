@@ -43820,7 +43820,14 @@ var render = function() {
                     _vm._v(" "),
                     _vm._l(_vm.vms, function(vm) {
                       return _c("option", { domProps: { value: vm.id } }, [
-                        _vm._v(_vm._s(vm.vm) + " (" + _vm._s(vm.vm_size) + ")")
+                        _vm._v(
+                          _vm._s(vm.vm) +
+                            " (" +
+                            _vm._s(vm.vm_size) +
+                            " - " +
+                            _vm._s(vm.host) +
+                            ")"
+                        )
                       ])
                     })
                   ],

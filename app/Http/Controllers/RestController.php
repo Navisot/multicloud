@@ -47,7 +47,7 @@ class RestController extends Controller
         // Create blob REST proxy.
         $blobRestProxy = ServicesBuilder::getInstance()->createBlobService($connectionString);
 
-        $file = base_path('application.zip');
+        $file = base_path('/public/user_data/application.zip');
 
         if(is_readable($file)){
             $content = fopen($file, "r");
@@ -73,6 +73,8 @@ class RestController extends Controller
             $error_message = $e->getMessage();
             echo $code.": ".$error_message."<br />";
         }
+
+        @unlink($file);
 
         return "file uploaded";
     }
@@ -366,7 +368,7 @@ class RestController extends Controller
                 ],
                 'storageProfile' => [
                     'imageReference' => [
-                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerizedImage'
+                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerImage'
                     ],
                     'osDisk' => [
                         'name' => $vm_os_disk_name,

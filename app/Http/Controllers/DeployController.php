@@ -23,7 +23,21 @@ class DeployController extends RestController
     public function deployCode(Request $request) {
 
         $application_code = $request->app_code;
+        // Array Vms
         $selected_vms = $request->selected_vms;
+
+        // Separate VMS
+        $azure_vms = [];
+        $aws_vms = [];
+
+        foreach($selected_vms as $vm){
+            $vm_id = AWSvm::find($vm);
+            if($vm_id){
+                array_push($aws_vms, $vm);
+            } else {
+                array_push($azure_vms, $vm);
+            }
+        }
 
         $code = CustomHelper::saveCodeLocal($application_code);
 
@@ -33,7 +47,16 @@ class DeployController extends RestController
 
         CustomHelper::uploadCodeToS3($code['aws_file'], $code['local_path']);
 
-        $deployment = $this->createAWSDeployment($code['zip_file'], $selected_vms);
+        @unlink($code['local_path']);
+
+        $deployment = $this->createAWSDeployment($code['zip_file'], $aws_vms);
+
+        if(!empty($azure_vms)){
+
+            // todo get ip addresses and save to file into application.zip as ip.txt
+
+            $this->createBlob();
+        }
 
         return response()->json(['deployment' => $deployment], 200);
 

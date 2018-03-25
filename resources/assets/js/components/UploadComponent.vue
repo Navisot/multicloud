@@ -11,7 +11,7 @@
                         <div class="select is-fullwidth is-multiple">
                             <select multiple size="3" v-model="selected_vms">
                                 <option disabled selected value>-- Choose At Least One VM To Deploy Your App --</option>
-                                <option v-for="vm in vms" :value="vm.id">{{ vm.vm }} ({{vm.vm_size}})</option>
+                                <option v-for="vm in vms" :value="vm.id">{{ vm.vm }} ({{vm.vm_size}} - {{vm.host}})</option>
                             </select>
                         </div>
                     </div>
