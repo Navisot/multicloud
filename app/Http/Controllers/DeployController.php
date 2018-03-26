@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\AWSvm;
+use App\Azurevm;
 use Illuminate\Http\Request;
 use App\User;
 use App\Http\Libraries\CustomHelper;
 use App\AwsApplication;
+use Storage;
 
 class DeployController extends RestController
 {
@@ -30,6 +32,9 @@ class DeployController extends RestController
         $azure_vms = [];
         $aws_vms = [];
 
+        $has_azure_vms = false;
+        $deployment = null;
+
         foreach($selected_vms as $vm){
             $vm_id = AWSvm::find($vm);
             if($vm_id){
@@ -39,23 +44,35 @@ class DeployController extends RestController
             }
         }
 
-        $code = CustomHelper::saveCodeLocal($application_code);
+        if(!empty($azure_vms)){
+
+            $has_azure_vms = true;
+
+            //get ip addresses and save to file ip.txt
+            foreach ($azure_vms as $azure){
+                $vm = Azurevm::find($azure);
+                $ip = $vm->ip_address;
+                Storage::disk('local')->append('ip.txt', $ip);
+            }
+
+        }
+
+        $code = CustomHelper::saveCodeLocal($application_code, $has_azure_vms);
 
         if(!$code['correct_file']) {
             return response()->json(['status' => 'Not Found'], 404);
         }
 
-        CustomHelper::uploadCodeToS3($code['aws_file'], $code['local_path']);
+        if(!empty($aws_vms)) {
+            CustomHelper::uploadCodeToS3($code['aws_file'], $code['local_path']);
+            $deployment = $this->createAWSDeployment($code['zip_file'], $aws_vms);
+        }
 
         @unlink($code['local_path']);
 
-        $deployment = $this->createAWSDeployment($code['zip_file'], $aws_vms);
-
         if(!empty($azure_vms)){
-
-            // todo get ip addresses and save to file into application.zip as ip.txt
-
             $this->createBlob();
+            Storage::disk('local')->delete('ip.txt');
         }
 
         return response()->json(['deployment' => $deployment], 200);

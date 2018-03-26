@@ -111,6 +111,7 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
         'C' => 
         array (
             'Cron\\' => 5,
+            'Chumper\\Zipper\\' => 15,
             'Carbon\\' => 7,
         ),
         'A' => 
@@ -290,6 +291,10 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
         'Cron\\' => 
         array (
             0 => __DIR__ . '/..' . '/mtdowling/cron-expression/src/Cron',
+        ),
+        'Chumper\\Zipper\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper',
         ),
         'Carbon\\' => 
         array (
@@ -823,6 +828,12 @@ class ComposerStaticInita1b505c2a009a03a123129de86861dfb
         'Carbon\\Carbon' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Carbon.php',
         'Carbon\\CarbonInterval' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/CarbonInterval.php',
         'Carbon\\Exceptions\\InvalidDateException' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Exceptions/InvalidDateException.php',
+        'Carbon\\Translator' => __DIR__ . '/..' . '/nesbot/carbon/src/Carbon/Translator.php',
+        'Chumper\\Zipper\\Facades\\Zipper' => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper/Facades/Zipper.php',
+        'Chumper\\Zipper\\Repositories\\RepositoryInterface' => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper/Repositories/RepositoryInterface.php',
+        'Chumper\\Zipper\\Repositories\\ZipRepository' => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper/Repositories/ZipRepository.php',
+        'Chumper\\Zipper\\Zipper' => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper/Zipper.php',
+        'Chumper\\Zipper\\ZipperServiceProvider' => __DIR__ . '/..' . '/chumper/zipper/src/Chumper/Zipper/ZipperServiceProvider.php',
         'Console_Getopt' => __DIR__ . '/..' . '/pear/console_getopt/Console/Getopt.php',
         'CreateAwsapplicationsTable' => __DIR__ . '/../..' . '/database/migrations/2018_03_07_120320_create_awsapplications_table.php',
         'CreateAwsvmsTable' => __DIR__ . '/../..' . '/database/migrations/2018_02_04_104141_create_awsvms_table.php',

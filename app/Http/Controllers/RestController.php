@@ -368,7 +368,7 @@ class RestController extends Controller
                 ],
                 'storageProfile' => [
                     'imageReference' => [
-                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerImage'
+                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerizedImage'
                     ],
                     'osDisk' => [
                         'name' => $vm_os_disk_name,

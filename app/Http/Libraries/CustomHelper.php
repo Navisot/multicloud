@@ -2,6 +2,9 @@
 
 namespace App\Http\Libraries;
 use App\Azurevm;
+use Zipper;
+use Storage;
+use File;
 
 class CustomHelper {
 
@@ -17,7 +20,7 @@ class CustomHelper {
 
     }
 
-    public static function saveCodeLocal($application_code) {
+    public static function saveCodeLocal($application_code, $azure_vms) {
 
         $correct_file = false;
 
@@ -36,14 +39,39 @@ class CustomHelper {
 
         file_put_contents($path, $decoded);
 
-        // Azure
-        $azure_path = public_path() . '/user_data/application.zip';
-        file_put_contents($azure_path, $decoded);
+        if($azure_vms) {
+
+            // Azure
+            $azure_path = public_path() . '/user_data/application.zip';
+            file_put_contents($azure_path, $decoded);
+
+            // Extract Application Zip To /public/extract/
+            Zipper::make($azure_path)->extractTo(public_path().'/extract/');
+
+            @unlink($azure_path);
+
+            $ip_txt = Storage::disk('local')->get('ip.txt');
+
+            file_put_contents(public_path().'/extract/ip.txt', $ip_txt);
+
+            $files = glob(public_path() . '/extract');
+
+            Zipper::zip('user_data/application.zip')->add($files)->close();
+
+            $extract_directory = public_path().'/extract';
+
+            File::deleteDirectory($extract_directory);
+
+            $azure_file = '/users/application.zip';
+        }
 
         $aws_file = '/users/' . $filename;
-        $azure_file = '/users/application.zip';
 
-        return array('aws_file' => $aws_file, 'azure_file' => $azure_file, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
+        if($azure_vms) {
+            return array('aws_file' => $aws_file, 'azure_file' => $azure_file, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
+        } else {
+            return array('aws_file' => $aws_file, 'azure_file' => null, 'local_path' => $path, 'correct_file' => $correct_file, 'zip_file' => $filename);
+        }
 
     }
 
