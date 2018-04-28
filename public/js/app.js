@@ -43151,6 +43151,8 @@ var render = function() {
   return _c("div", [
     _c("br"),
     _vm._v(" "),
+    _c("a", { attrs: { href: "/" } }, [_vm._v("Back To Dashboard")]),
+    _vm._v(" "),
     _c("div", { staticClass: "box" }, [
       _c(
         "h4",

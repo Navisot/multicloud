@@ -1,18 +1,20 @@
 <?php
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('home');
+})->name('homepage');
+
+Route::group(['middleware' => 'auth'], function(){
 
 Route::get('/vms', function(){
 
     return view('listVMs');
 
-});
+})->name('vms');
 
 Route::get('/deploy', function(){
    return view('upload');
-});
+})->name('deploy');
 
 Route::post('/deploy/vm', ['uses' => 'DeployController@deployCode', 'as' => 'deploy.code']);
 
@@ -44,3 +46,9 @@ Route::get('vms/user', ['uses' => 'ActionController@getVirtualMachines', 'as' =>
 // DEMO
 
 Route::get('/demo', ['uses' => 'RestController@createBlob']);
+
+});
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
