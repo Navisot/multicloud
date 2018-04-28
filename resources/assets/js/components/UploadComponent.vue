@@ -1,6 +1,7 @@
 <template>
     <div>
         <br>
+        <a href="/">Back To Dashboard</a>
         <div class="box">
             <h4 class="has-text-centered" style="font-size:24px;">Deploy Your Application</h4><hr>
             <form method="POST" v-on:submit.prevent="uploadApplicationCode()" enctype="multipart/form-data">
