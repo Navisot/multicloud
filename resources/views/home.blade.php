@@ -82,10 +82,10 @@
                     <div class="content article-body">
                         @if(!Auth::check())
                             <p class="has-text-centered">In order to use this application, you must be an active member.</p>
-                        <div class="has-text-centered"><a class="button is-info" href="{{route('login')}}">Login / Register</a></div>
+                        <div class="has-text-centered"><a class="button is-info" style="font-size:18px;" href="{{route('login')}}">Login / Register</a></div>
                             @else
                             <div class="has-text-centered">
-                                <a class="button is-primary" href="{{route('vms')}}">List all VMs</a> || <a class="button is-info" href="{{route('deploy')}}">Application Deploy.</a>
+                                <a class="button is-primary" href="{{route('vms')}}" style="font-size:18px;">List all VMs</a> || <a class="button is-info" href="{{route('deploy')}}" style="font-size:18px;">Application Deploy.</a>
                             </div>
                         @endif
                     </div>
