@@ -130,7 +130,7 @@ export default {
 
                         if(response.status == 200) {
 
-                            axios.get('/vms/user/1').then(function(res){
+                            axios.get('/vms/user').then(function(res){
                                that.vms = res.data.vms;
                                that.count_vms = res.data.vms.length;
 							});

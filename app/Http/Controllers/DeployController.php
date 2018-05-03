@@ -9,6 +9,7 @@ use App\User;
 use App\Http\Libraries\CustomHelper;
 use App\AwsApplication;
 use Storage;
+use Auth;
 
 class DeployController extends RestController
 {
@@ -81,7 +82,7 @@ class DeployController extends RestController
 
     public function createAWSDeployment($zip_file, $vms) {
 
-        $user = User::find(1);
+        $user = User::find(Auth::user()->id);
 
         if( !$user->application ) {
 

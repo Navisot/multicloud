@@ -18,6 +18,7 @@ use MicrosoftAzure\Storage\Blob\Models\CreateContainerOptions;
 use MicrosoftAzure\Storage\Blob\Models\PublicAccessType;
 use MicrosoftAzure\Storage\Blob\Models\CreateBlobOptions;
 use MicrosoftAzure\Storage\Common\ServiceException;
+use Auth;
 
 
 class RestController extends Controller
@@ -82,7 +83,7 @@ class RestController extends Controller
 
     public function getAzureAccessToken() {
 
-        $db_token = UserToken::where('user_id', 1)->orderBy('created_at','desc')->first();
+        $db_token = UserToken::where('user_id', Auth::user()->id)->orderBy('created_at','desc')->first();
 
         if($db_token != null && !empty($db_token)){
 
@@ -118,7 +119,7 @@ class RestController extends Controller
         $azure_access_token = $object->access_token;
 
         $ut = new UserToken();
-        $ut->user_id = 1;
+        $ut->user_id = Auth::user()->id;
         $ut->azure_access_token = $azure_access_token;
         $ut->save();
 
@@ -152,7 +153,7 @@ class RestController extends Controller
 
             Azurevm::where('id', $vm_id)->update($update);
 
-            $vms = Azurevm::where('user_id', 1)->get();
+            $vms = Azurevm::where('user_id', Auth::user()->id)->get();
 
             return response()->json(array('status' => 'OK', 'vms' => $vms));
         }
@@ -185,7 +186,7 @@ class RestController extends Controller
 
             Azurevm::where('id', $vm_id)->update($update);
 
-            $vms = Azurevm::where('user_id', 1)->get();
+            $vms = Azurevm::where('user_id', Auth::user()->id)->get();
 
             return response()->json(array('status' => 'OK', 'vms' => $vms));
         }
@@ -418,7 +419,7 @@ class RestController extends Controller
 
         if($object->name == $want_vm_name) {
 
-            $data['user_id'] = 1;
+            $data['user_id'] = Auth::user()->id;
             $data['vm'] = $object->name;
             $data['admin_username'] = $object->properties->osProfile->adminUsername;
             $data['virtual_network'] = $virtual_network;
@@ -644,7 +645,7 @@ class RestController extends Controller
         $new_aws_vm->vpc_id = $instance["VpcId"];
         $new_aws_vm->image_id = $instance["ImageId"];
         $new_aws_vm->security_group_id = $instance["SecurityGroups"][0]["GroupId"];
-        $new_aws_vm->user_id = 1;
+        $new_aws_vm->user_id = Auth::user()->id;
 
         $new_aws_vm->save();
 
@@ -656,7 +657,7 @@ class RestController extends Controller
 
     public function getVirtualMachines() {
 
-        $user_id = 1;
+        $user_id = Auth::user()->id;
 
         $azure_vms = Azurevm::where('user_id', $user_id)->get()->toArray();
 

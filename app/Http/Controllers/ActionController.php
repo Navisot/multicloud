@@ -7,12 +7,13 @@ use App\Azurevm;
 use App\AWSvm;
 use App\User;
 use App\Http\Libraries\CustomHelper;
+use Auth;
 
 class ActionController extends RestController
 {
     public function getVirtualMachines() {
 
-        $user_id = 1;
+        $user_id = Auth::user()->id;
 
         $azure_vms = Azurevm::where('user_id', $user_id)->get()->toArray();
 
