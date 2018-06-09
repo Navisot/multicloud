@@ -139,7 +139,8 @@ class RestController extends Controller
 
         $client = new Client();
 
-        $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'.$vm_name.'/powerOff?api-version=2017-03-30';
+        $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.
+            $this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'.$vm_name.'/powerOff?api-version=2017-03-30';
 
         $result = $client->post($url, [
             'headers' => $headers
@@ -172,7 +173,8 @@ class RestController extends Controller
 
         $client = new Client();
 
-        $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'.$vm_name.'/start?api-version=2017-03-30';
+        $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.
+            $this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'.$vm_name.'/start?api-version=2017-03-30';
 
         $result = $client->post($url, [
             'headers' => $headers
@@ -369,7 +371,7 @@ class RestController extends Controller
                 ],
                 'storageProfile' => [
                     'imageReference' => [
-                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerizedImage'
+                        'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/images/dockerImg'
                     ],
                     'osDisk' => [
                         'name' => $vm_os_disk_name,
@@ -609,7 +611,7 @@ class RestController extends Controller
 
         // Launch an instance with the key pair and security group
         $result = $ec2Client->runInstances(array(
-            'ImageId'        => 'ami-cf217124',
+            'ImageId'        => 'ami-01d6e7ea',
             'MinCount'       => 1,
             'MaxCount'       => 1,
             'InstanceType'   => 't2.micro',
