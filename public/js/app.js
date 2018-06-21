@@ -43035,15 +43035,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             this.button.text = 'Please Wait To Create VM...';
             this.showSpinner = true;
 
-            //                if(this.new_vm_name.length <= 0 || selected_host.length <= 0) {
-            //                    alert('Please Fill In All The Required Fields');
-            //                    this.showSpinner = false;
-            //                    this.button.text = 'Create VM'
-            //                    this.disableCreateVM = false;
-            //                    this.showModal = true;
-            //                    return false;
-            //				}
-
             if (selected_host.length > 1) {
 
                 // Create Multiple VMS
@@ -43067,6 +43058,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
                     // Create Azure VM
                     axios.post('/azure/create/vm/' + new_name).then(function (response) {
+
+                        if (response.data.error) {
+                            alert('Microsoft Subscription Error');
+                        }
+
                         that.vms = response.data.vms;
                         that.count_vms = response.data.vms.length;
                         that.disableCreateVM = false;

@@ -12,7 +12,7 @@ class CustomHelper {
 
         $new_data['ip_address'] = $new_ip;
 
-        if ( Azurevm::where('id', $vm_id)->update($new_data) ){
+        if (Azurevm::where('id', $vm_id)->update($new_data)){
             return true;
         }
 

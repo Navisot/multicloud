@@ -7,6 +7,7 @@ use App\AwsApplication;
 use Aws\CodeDeploy\CodeDeployClient;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use App\UserToken;
 use Carbon\Carbon;
 use App\Azurevm;
@@ -195,9 +196,7 @@ class RestController extends Controller
 
     }
 
-    public function createAzureIP($ip_label) {
-
-        $token = $this->getAzureAccessToken();
+    public function createAzureIP($client, $ip_label, $token) {
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
@@ -207,27 +206,26 @@ class RestController extends Controller
 
         $body = ['location' => 'westeurope'];
 
-
-        $client = new Client();
-
         $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Network/publicIPAddresses/'.$ip_label.'?api-version=2017-09-01';
 
-        $result = $client->put($url, [
+        $promise = $client->requestAsync('PUT', $url, [
             'headers' => $headers,
             'json' => $body
         ]);
 
-        $response = $result->getBody();
+        $promise->then(function (ResponseInterface $response) {
+            $object = json_decode($response->getBody());
+            // Do something with the profile.
+            return $object->id;
+        });
 
-        $object = json_decode($response);
+        $object_id = $promise->wait();
 
-        return $object->id;
+        return $object_id;
 
     }
 
-    public function createAzureVirtualNetwork($virtualNetworkName) {
-
-        $token = $this->getAzureAccessToken();
+    public function createAzureVirtualNetwork($client, $virtualNetworkName, $token) {
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
@@ -238,15 +236,14 @@ class RestController extends Controller
         $body = [
             'location' => 'west europe',
             'properties' => [
-            'addressSpace' => [
-                'addressPrefixes' => [
-                    '10.0.0.0/16'
+                'addressSpace' => [
+                    'addressPrefixes' => [
+                        '10.0.0.0/16'
                     ]
                 ]
             ]
         ];
 
-        $client = new Client();
 
         $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Network/virtualNetworks/'.$virtualNetworkName.'?api-version=2017-09-01';
 
@@ -256,14 +253,11 @@ class RestController extends Controller
         ]);
 
         $response = $result->getBody();
-
         $object = json_decode($response);
-
         $subnet_body = ['location' => 'west europe', 'properties' => ['addressPrefix' => '10.0.0.0/16']];
-
         $subnet_url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Network/virtualNetworks/'.$virtualNetworkName.'/subnets/default?api-version=2017-09-01';
 
-        $subnet_client = new Client();
+        $subnet_client = $client;
 
         $subnet_result = $subnet_client->put($subnet_url, [
             'headers' => $headers,
@@ -271,20 +265,15 @@ class RestController extends Controller
         ]);
 
         $subnet_response = $subnet_result->getBody();
-
         $subnet_object = json_decode($subnet_response);
-
         $subnet_resource_id = $subnet_object->id;
 
-
         return array('vnet_name' => $object->name, 'subnet_id' => $subnet_resource_id);
-
     }
 
 
-    public function createAzureNetworkInterface($want_ip_label, $want_virtualNetworkName) {
 
-        $token = $this->getAzureAccessToken();
+    public function createAzureNetworkInterface($client, $want_ip_label, $want_virtualNetworkName, $token) {
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
@@ -292,9 +281,15 @@ class RestController extends Controller
             'Accept' => 'application/json'
         ];
 
-        $ip_address = $this->createAzureIP($want_ip_label);
+        $ip_address = $this->createAzureIP($client, $want_ip_label, $token);
 
-        $vnet_info = $this->createAzureVirtualNetwork($want_virtualNetworkName);
+        $ip_address = json_decode($ip_address->getBody());
+
+        $ip_address = $ip_address->id;
+
+        $vnet_info = $this->createAzureVirtualNetwork($client, $want_virtualNetworkName, $token);
+
+        sleep(10);
 
         $subnet_id = $vnet_info['subnet_id'];
 
@@ -320,24 +315,29 @@ class RestController extends Controller
 
         ];
 
-        $client = new Client();
-
         $interface_label = $want_virtualNetworkName . '_interface';
 
         $url = 'https://management.azure.com/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Network/networkInterfaces/'.$interface_label.'?api-version=2017-09-01';
 
-        $result = $client->put($url,[
-
+        $promise = $client->requestAsync('PUT', $url, [
             'headers' => $headers,
             'json' => $body
-
         ]);
 
-        $response = $result->getBody();
+        $promise->then(function (ResponseInterface $response) {
+            $object = json_decode($response->getBody());
+            return $object->id;
+        });
 
-        $object = json_decode($response);
+        $object = $promise->wait();
 
-        return $object->id;
+        $answer = json_decode($object->getBody());
+
+        if($answer->id){
+            return array('status' => 'ok', 'id' => $answer->id);
+        } else {
+            return array('status' => 'error');
+        }
 
     }
 
@@ -358,7 +358,11 @@ class RestController extends Controller
         $ipLabel = $want_vm_name . '_ip_address';
         $virtual_network = $want_vm_name . '_virtual_network';
 
-        $newNetworkInterface = $this->createAzureNetworkInterface($ipLabel, $virtual_network);
+        $newNetworkInterface = $this->createAzureNetworkInterface($client, $ipLabel, $virtual_network, $token);
+
+        if($newNetworkInterface['status'] == 'error'){
+            return response()->json(['error' => 'error'], 200);
+        }
 
         $body = [
             'id' => '/subscriptions/'.$this->azure_subscriptionId.'/resourceGroups/'.$this->azure_resource_group.'/providers/Microsoft.Compute/virtualMachines/'. $want_vm_name,
@@ -398,7 +402,7 @@ class RestController extends Controller
                 'networkProfile' => [
                     'networkInterfaces' => [
                         [
-                            'id' => $newNetworkInterface
+                            'id' => $newNetworkInterface['id']
                         ]
                     ]
                 ],
@@ -439,6 +443,10 @@ class RestController extends Controller
 
             $public_ip = $this->getAzureVMPublicIpAddress($ipLabel);
 
+            if (!$public_ip){
+                return response()->json(['error' => 'Microsoft Error'], 200);
+            }
+
             $data['ip_address'] = $public_ip;
 
             $vm = Azurevm::create($data);
@@ -476,13 +484,22 @@ class RestController extends Controller
 
         $response = $result->getBody();
 
+        if (!$response){
+            return response()->json(['error' => 'Microsoft Error'], 200);
+        }
+
         $object = json_decode($response);
 
-        $new_ip = $object->properties->ipAddress;
+        if($object->properties->ipAddress){
+            $new_ip = $object->properties->ipAddress;
+        } else {
+            $new_ip = '0.0.0.0';
+        }
 
-        CustomHelper::updateIPAddress($vm_id,$new_ip);
+        // If Exists
+        CustomHelper::updateIPAddress($vm_id, $new_ip);
 
-        return $object->properties->ipAddress;
+        return $new_ip;
 
     }
 
